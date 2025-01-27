@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "291532001872",
+    "project_id": "fitspire-c12f9",
+    "storage_bucket": "fitspire-c12f9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:291532001872:android:3e7d23858ebb1338713755",
+        "android_client_info": {
+          "package_name": "com.fitpsire.firebase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFhtGY2pCSvfyxUmwB1c9YDhbLcQwL6Vs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
