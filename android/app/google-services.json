@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "291532001872",
+    "project_id": "fitspire-c12f9",
+    "storage_bucket": "fitspire-c12f9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:291532001872:android:3e7d23858ebb1338713755",
+        "android_client_info": {
+          "package_name": "com.fitpsire.firebase"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "291532001872-bosd6i8b7v6gajej62eddhltokth3mhp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fitpsire.firebase",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "291532001872-1dbl2433gc40f184ngujovvacfdrced9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFhtGY2pCSvfyxUmwB1c9YDhbLcQwL6Vs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "291532001872-1dbl2433gc40f184ngujovvacfdrced9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "291532001872-6qkp10m9r7furfblk7jq8a8t6t799shu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.fitspireios.firebase"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
