@@ -10,7 +10,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { auth } from '../../firebaseConfig';
 import {
@@ -18,16 +18,16 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
-import { EyeIcon, EyeOffIcon } from 'lucide-react-native'; // Icons for password visibility
+import { EyeIcon, EyeOffIcon } from 'lucide-react-native';
 
 const SignIn = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false); // State for show password toggle
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const router = useRouter();
 
   // Handle Email/Password Sign In
-  const handleSignIn = async () => {
+  const handleSignIn = useCallback(async () => {
     if (!form.email || !form.password) {
       Alert.alert('Error', 'Please fill in both fields');
       return;
@@ -55,7 +55,9 @@ const SignIn = () => {
       Alert.alert('Success', 'Signed in successfully!');
       router.replace('/(tabs)/home'); // Redirect to Home
     } catch (error) {
-      const errorMessages = {
+      const firebaseError = error as { code?: string; message?: string };
+
+      const errorMessages: Record<string, string> = {
         'auth/user-not-found': 'No account found with this email.',
         'auth/wrong-password': 'Incorrect password. Please try again.',
         'auth/invalid-email': 'The email address is invalid.',
@@ -65,14 +67,16 @@ const SignIn = () => {
       };
 
       const errorMessage =
-        errorMessages[error.code] || error?.message || 'Failed to sign in';
+        firebaseError.code && errorMessages[firebaseError.code]
+          ? errorMessages[firebaseError.code]
+          : firebaseError.message || 'Failed to sign in';
       Alert.alert('Error', errorMessage);
     }
     setLoading(false);
-  };
+  }, [form.email, form.password, router]);
 
   // Handle Google Sign In
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = useCallback(async () => {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
@@ -80,20 +84,22 @@ const SignIn = () => {
       Alert.alert('Success', 'Signed in with Google!');
       router.push('/(tabs)/home'); // Redirect to Home
     } catch (error) {
-      const errorMessages = {
+      const firebaseError = error as { code?: string; message?: string };
+
+      const errorMessages: Record<string, string> = {
         'auth/popup-closed-by-user':
           'Sign-in popup was closed. Please try again.',
         'auth/cancelled-popup-request': 'Sign-in popup request was canceled.',
       };
 
       const errorMessage =
-        errorMessages[error.code] ||
-        error?.message ||
-        'Failed to sign in with Google';
+        firebaseError.code && errorMessages[firebaseError.code]
+          ? errorMessages[firebaseError.code]
+          : firebaseError.message || 'Failed to sign in with Google';
       Alert.alert('Error', errorMessage);
     }
     setLoading(false);
-  };
+  }, [router]);
 
   return (
     <SafeAreaView className="flex-1 bg-[#F0F4F8]">
@@ -125,7 +131,9 @@ const SignIn = () => {
                   placeholder="JohnDoe@gmail.com"
                   placeholderTextColor="#6b7280"
                   value={form.email}
-                  onChangeText={(email) => setForm({ ...form, email })}
+                  onChangeText={(email) =>
+                    setForm((prev) => ({ ...prev, email }))
+                  }
                 />
                 <Text className="text-[#222] text-lg font-semibold mb-2 mt-6">
                   Password
@@ -137,7 +145,9 @@ const SignIn = () => {
                     placeholder="**********"
                     placeholderTextColor="#6b7280"
                     value={form.password}
-                    onChangeText={(password) => setForm({ ...form, password })}
+                    onChangeText={(password) =>
+                      setForm((prev) => ({ ...prev, password }))
+                    }
                   />
                   <TouchableOpacity
                     onPress={() => setIsPasswordVisible(!isPasswordVisible)}
@@ -152,9 +162,8 @@ const SignIn = () => {
                 </View>
               </View>
 
-              {/* Forgot Password Option */}
               <TouchableOpacity
-                onPress={() => router.push('/forgot-password')}
+                onPress={() => router.push('/(auth)/forgotPassword')}
                 className="mt-2 mb-6"
               >
                 <Text className="text-[#2B8FFC] text-lg font-semibold text-right">

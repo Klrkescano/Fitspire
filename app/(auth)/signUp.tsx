@@ -18,14 +18,46 @@ import {
 } from 'firebase/auth';
 
 const SignUp = () => {
-  const [form, setForm] = useState({ email: '', password: '', phone: '' });
+  const [form, setForm] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    phone: '',
+  });
   const [loading, setLoading] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState('');
+
   const router = useRouter();
+
+  const checkPasswordStrength = (password: string) => {
+    if (password.length < 8) return 'Weak';
+    if (
+      /[A-Z]/.test(password) &&
+      /[0-9]/.test(password) &&
+      /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    ) {
+      return 'Strong';
+    }
+    return 'Medium';
+  };
 
   // Handle Sign Up
   const handleSignUp = async () => {
-    if (!form.email || !form.password || !form.phone) {
+    if (!form.email || !form.password || !form.confirmPassword || !form.phone) {
       Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+
+    if (passwordStrength === 'Weak') {
+      Alert.alert(
+        'Error',
+        'Password must be at least 8 characters long, contain an uppercase letter, a number, and a special character.'
+      );
       return;
     }
 
@@ -46,21 +78,14 @@ const SignUp = () => {
         'Account created! A verification email has been sent to your email address. Please verify your email before logging in.'
       );
 
-      router.replace('/(auth)/signIn'); // Redirect to Home
+      router.replace('/(auth)/signIn');
     } catch (error: any) {
-      // Handle Firebase error codes
       if (error.code === 'auth/email-already-in-use') {
-        Alert.alert(
-          'Error',
-          'The email address is already in use by another account.'
-        );
+        Alert.alert('Error', 'The email address is already in use.');
       } else if (error.code === 'auth/invalid-email') {
-        Alert.alert('Error', 'The email address is not valid.');
+        Alert.alert('Error', 'Invalid email address.');
       } else if (error.code === 'auth/weak-password') {
-        Alert.alert(
-          'Error',
-          'The password is too weak. Please use a stronger password.'
-        );
+        Alert.alert('Error', 'Password is too weak.');
       } else {
         Alert.alert('Error', error.message || 'Failed to sign up');
       }
@@ -105,8 +130,40 @@ const SignUp = () => {
                 placeholder="**********"
                 placeholderTextColor="#6b7280"
                 value={form.password}
-                onChangeText={(password) => setForm({ ...form, password })}
+                onChangeText={(password) => {
+                  setForm({ ...form, password });
+                  setPasswordStrength(checkPasswordStrength(password));
+                }}
               />
+
+              {form.password.length > 0 && (
+                <Text
+                  className={`text-sm font-medium mt-1 ${
+                    passwordStrength === 'Weak'
+                      ? 'text-red-500'
+                      : passwordStrength === 'Medium'
+                      ? 'text-yellow-500'
+                      : 'text-green-500'
+                  }`}
+                >
+                  {`Password Strength: ${passwordStrength}`}
+                </Text>
+              )}
+
+              <Text className="text-[#222] text-lg font-semibold mb-2 mt-6">
+                Confirm Password
+              </Text>
+              <TextInput
+                secureTextEntry
+                className="h-[44px] bg-white py-2 px-4 rounded-[12px] text-sm font-medium text-[#222]"
+                placeholder="**********"
+                placeholderTextColor="#6b7280"
+                value={form.confirmPassword}
+                onChangeText={(confirmPassword) =>
+                  setForm({ ...form, confirmPassword })
+                }
+              />
+
               <Text className="text-[#222] text-lg font-semibold mb-2 mt-6">
                 Phone Number
               </Text>
