@@ -11,7 +11,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.fitpsire.fitpsireios.firebase",
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library",
+        "NSCameraUsageDescription": "This app needs access to your camera"
+      }
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -30,6 +34,7 @@
       "expo-router",
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
+      "@react-native-google-signin/google-signin",
 
       [
         "expo-build-properties",

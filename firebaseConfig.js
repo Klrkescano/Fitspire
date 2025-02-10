@@ -4,14 +4,15 @@ import {
   initializeAuth,
   getReactNativePersistence,
 } from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getFirestore } from 'firebase/firestore'; // Import Firestore
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 // Your Firebase config
 const firebaseConfig = {
   apiKey: 'AIzaSyDxrAF5sC_3IM9FfZ4BqMi4X612bHTaSYA',
   authDomain: 'fitspire-c12f9.firebaseapp.com',
   projectId: 'fitspire-c12f9',
-  storageBucket: 'fitspire-c12f9.firebasestorage.app',
+  storageBucket: 'fitspire-c12f9.appspot.com',
   messagingSenderId: '291532001872',
   appId: '1:291532001872:web:45200f7188aa1c67713755',
 };
@@ -19,9 +20,12 @@ const firebaseConfig = {
 // Initialize Firebase app
 const app = initializeApp(firebaseConfig);
 
-// Initialize Auth with persistence
+// Initialize Firebase Authentication with persistence (using AsyncStorage)
 const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage),
 });
 
-export { app, auth };
+// Initialize Firestore Database
+const db = getFirestore(app);
+
+export { app, auth, db };

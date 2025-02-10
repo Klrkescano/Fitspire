@@ -1,6 +1,7 @@
 import { View, Text, Image } from 'react-native';
 import React from 'react';
 import icons from '../../constants/icons';
+import { UserProvider } from '../context/UserContext'; // Import the UserProvider
 import { Tabs } from 'expo-router';
 
 const TabsLayout = () => {
@@ -31,50 +32,53 @@ const TabsLayout = () => {
       </View>
     );
   };
+
   return (
-    <Tabs
-      screenOptions={{
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: 'white',
-          position: 'absolute',
-          borderTopColor: '#0061FF1A',
-          borderTopWidth: 1,
-          minHeight: 70,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: 'Home',
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon icon={icons.home} focused={focused} title="Home" />
-          ),
+    <UserProvider>
+      <Tabs
+        screenOptions={{
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            backgroundColor: 'white',
+            position: 'absolute',
+            borderTopColor: '#0061FF1A',
+            borderTopWidth: 1,
+            minHeight: 70,
+          },
         }}
-      />
-      <Tabs.Screen
-        name="workout"
-        options={{
-          title: 'Workout',
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon icon={icons.dumbell} focused={focused} title="Home" />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon icon={icons.person} focused={focused} title="Home" />
-          ),
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="home"
+          options={{
+            title: 'Home',
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon icon={icons.home} focused={focused} title="Home" />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="workout"
+          options={{
+            title: 'Workout',
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon icon={icons.dumbell} focused={focused} title="Workout" />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profile',
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon icon={icons.person} focused={focused} title="Profile" />
+            ),
+          }}
+        />
+      </Tabs>
+    </UserProvider>
   );
 };
 
