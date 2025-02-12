@@ -9,14 +9,16 @@ import {
   Platform,
   ScrollView,
   Alert,
+  BackHandler,
 } from 'react-native';
-import React, { useState, useCallback } from 'react';
-import { useRouter } from 'expo-router';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { auth } from '../../firebaseConfig';
 import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  onAuthStateChanged,
 } from 'firebase/auth';
 import { EyeIcon, EyeOffIcon } from 'lucide-react-native';
 
@@ -25,6 +27,23 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const router = useRouter();
+
+  // Prevent Back Navigation if Not Logged In
+  useFocusEffect(
+    useCallback(() => {
+      const checkAuth = onAuthStateChanged(auth, (user) => {
+        if (!user) {
+          BackHandler.addEventListener('hardwareBackPress', () => true);
+          return;
+        }
+      });
+
+      return () => {
+        checkAuth();
+        BackHandler.removeEventListener('hardwareBackPress', () => true);
+      };
+    }, [])
+  );
 
   // Handle Email/Password Sign In
   const handleSignIn = useCallback(async () => {
@@ -42,7 +61,6 @@ const SignIn = () => {
       );
       const user = userCredential.user;
 
-      // Check if the email is verified
       if (!user.emailVerified) {
         Alert.alert(
           'Email Not Verified',
@@ -53,7 +71,7 @@ const SignIn = () => {
       }
 
       Alert.alert('Success', 'Signed in successfully!');
-      router.replace('/(tabs)/home'); // Redirect to Home
+      router.replace('/(tabs)/home');
     } catch (error) {
       const firebaseError = error as { code?: string; message?: string };
 
@@ -74,32 +92,6 @@ const SignIn = () => {
     }
     setLoading(false);
   }, [form.email, form.password, router]);
-
-  // Handle Google Sign In
-  const handleGoogleSignIn = useCallback(async () => {
-    setLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      Alert.alert('Success', 'Signed in with Google!');
-      router.push('/(tabs)/home'); // Redirect to Home
-    } catch (error) {
-      const firebaseError = error as { code?: string; message?: string };
-
-      const errorMessages: Record<string, string> = {
-        'auth/popup-closed-by-user':
-          'Sign-in popup was closed. Please try again.',
-        'auth/cancelled-popup-request': 'Sign-in popup request was canceled.',
-      };
-
-      const errorMessage =
-        firebaseError.code && errorMessages[firebaseError.code]
-          ? errorMessages[firebaseError.code]
-          : firebaseError.message || 'Failed to sign in with Google';
-      Alert.alert('Error', errorMessage);
-    }
-    setLoading(false);
-  }, [router]);
 
   return (
     <SafeAreaView className="flex-1 bg-[#F0F4F8]">
@@ -185,24 +177,6 @@ const SignIn = () => {
                   Don't have an account?{' '}
                   <Text className="underline">Sign up</Text>
                 </Text>
-              </TouchableOpacity>
-            </View>
-            <View className="border-t border-[#929292] my-5"></View>
-            <View>
-              <Text className="text-[#222] text-lg font-semibold text-center tracking-[0.1] mb-5">
-                or
-              </Text>
-              <TouchableOpacity onPress={handleGoogleSignIn}>
-                <View className="bg-white rounded-lg w-full shadow-zinc-200 shadow-md flex-row items-center justify-center py-2 px-5">
-                  <Image
-                    source={require('../../assets/icons/google.png')}
-                    className="w-5 h-5"
-                    resizeMode="contain"
-                  />
-                  <Text className="text-[#222] text-lg ml-2 font-semibold">
-                    Continue with Google
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
           </View>

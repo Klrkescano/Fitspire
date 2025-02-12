@@ -1,11 +1,14 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-// Define a TypeScript type for the user
+// Define the User Type with additional fields
 interface User {
   name: string;
   email: string;
   avatar: string | null;
   initials: string | null;
+  height?: string; // ✅ Added height
+  weight?: string; // ✅ Added weight
+  age?: string; // ✅ Added age
 }
 
 // Define the context type
@@ -14,10 +17,10 @@ interface UserContextType {
   setUser: React.Dispatch<React.SetStateAction<User>>;
 }
 
-// Create the context with an initial value
+// Create the context
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-// Create the UserProvider component to wrap around your app
+// UserProvider Component
 export const UserProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
@@ -26,6 +29,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     email: '',
     avatar: null,
     initials: null,
+    height: '',
+    weight: '',
+    age: '',
   });
 
   return (
@@ -35,7 +41,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   );
 };
 
-// Create a custom hook to access the user context
+// Custom Hook to access the context
 export const useUser = (): UserContextType => {
   const context = useContext(UserContext);
   if (!context) {
@@ -44,4 +50,4 @@ export const useUser = (): UserContextType => {
   return context;
 };
 
-export default UserContext; // Ensure the default export is there
+export default UserContext;

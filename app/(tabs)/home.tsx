@@ -1,4 +1,4 @@
-import { auth, db } from '@/firebaseConfig'; // Adjust the import path if needed
+import { auth, db } from '@/firebaseConfig';
 import React, { useEffect } from 'react';
 import {
   View,
@@ -8,71 +8,88 @@ import {
   useWindowDimensions,
   Image,
 } from 'react-native';
-import { useUser } from '../context/UserContext'; // Import the context
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import { useUser } from '../context/UserContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, onSnapshot } from 'firebase/firestore';
 
 const Home = () => {
   const { width, height } = useWindowDimensions();
-  const { user, setUser } = useUser(); // Access user from context
+  const { user, setUser } = useUser();
 
-  // Load user data from Firestore & AsyncStorage on mount
   useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+
     const loadUserData = async () => {
       try {
         const savedName = await AsyncStorage.getItem('userName');
         const savedAvatar = await AsyncStorage.getItem('userAvatar');
 
-        let userData = {
-          name: savedName || auth.currentUser?.displayName || 'User',
-          email: auth.currentUser?.email || '',
-          avatar: savedAvatar || auth.currentUser?.photoURL || null,
-        };
+        const authUser = auth.currentUser;
+        if (!authUser) return;
 
-        userData.initials = userData.avatar
+        const defaultName = savedName || authUser.displayName || 'User';
+        const defaultAvatar = savedAvatar || authUser.photoURL || null;
+        const initials = defaultAvatar
           ? null
-          : userData.name
+          : defaultName
               .split(' ')
               .map((part) => part[0].toUpperCase())
               .join('');
 
-        setUser(userData);
+        setUser((prevState) => ({
+          ...prevState,
+          name: defaultName,
+          email: authUser.email || '',
+          avatar: defaultAvatar,
+          initials,
+        }));
 
-        // Listen for real-time updates from Firestore
-        if (auth.currentUser?.email) {
-          const userRef = doc(db, 'users', auth.currentUser.email);
-          const unsubscribe = onSnapshot(userRef, (docSnap) => {
-            if (docSnap.exists()) {
-              const updatedData = docSnap.data();
-              setUser((prevState) => ({
-                ...prevState,
-                name: updatedData.name || prevState.name,
-                avatar: updatedData.avatar || prevState.avatar,
-                initials: updatedData.avatar
-                  ? null
-                  : (updatedData.name || prevState.name)
-                      .split(' ')
-                      .map((part) => part[0].toUpperCase())
-                      .join(''),
-              }));
+        if (authUser.email) {
+          const userRef = doc(db, 'users', authUser.email);
+          unsubscribe = onSnapshot(
+            userRef,
+            (docSnap) => {
+              if (docSnap.exists()) {
+                const updatedData = docSnap.data();
 
-              // Update AsyncStorage
-              AsyncStorage.setItem('userName', updatedData.name || '');
-              if (updatedData.avatar) {
-                AsyncStorage.setItem('userAvatar', updatedData.avatar);
+                setUser((prevState) => ({
+                  ...prevState,
+                  name: updatedData.name || prevState.name,
+                  avatar: updatedData.avatar || prevState.avatar,
+                  initials: updatedData.avatar
+                    ? null
+                    : (updatedData.name || prevState.name)
+                        .split(' ')
+                        .map((part: string) => part[0].toUpperCase())
+                        .join(''),
+                }));
+
+                if (updatedData.name && updatedData.name !== savedName) {
+                  AsyncStorage.setItem('userName', updatedData.name);
+                }
+                if (updatedData.avatar && updatedData.avatar !== savedAvatar) {
+                  AsyncStorage.setItem('userAvatar', updatedData.avatar);
+                }
               }
+            },
+            (error) => {
+              console.error('Firestore subscription error:', error);
             }
-          });
-
-          return () => unsubscribe(); // Cleanup listener
+          );
         }
       } catch (error) {
-        console.error('Failed to load user data', error);
+        console.error('Failed to load user data:', error);
       }
     };
 
     loadUserData();
-  }, [setUser]); // Runs when user state changes
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [setUser]);
 
   const items = [
     { name: 'Calories', value: '1,500 kcal' },
@@ -84,7 +101,6 @@ const Home = () => {
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <ScrollView>
-        {/* User Profile */}
         <View className="mt-4 px-4 flex-row items-center">
           {user.avatar ? (
             <Image
@@ -106,7 +122,6 @@ const Home = () => {
           </View>
         </View>
 
-        {/* App Title & Motivation */}
         <View className="mt-4 px-4">
           <Text className="text-3xl font-bold text-gray-800">Fitspire</Text>
           <Text className="text-base text-gray-500 mt-1">
@@ -114,7 +129,6 @@ const Home = () => {
           </Text>
         </View>
 
-        {/* Goals Section */}
         <View
           className="self-center rounded-lg bg-white mt-6 p-4"
           style={{ width: width * 0.9 }}
@@ -138,7 +152,6 @@ const Home = () => {
           </View>
         </View>
 
-        {/* Weekly Progress */}
         <View
           className="self-center rounded-lg bg-blue-100 mt-6 p-4"
           style={{ width: width * 0.9, height: height * 0.15 }}
@@ -157,7 +170,6 @@ const Home = () => {
           </View>
         </View>
 
-        {/* Daily Stats */}
         <View
           className="self-center rounded-lg bg-white mt-6 p-4"
           style={{ width: width * 0.9 }}

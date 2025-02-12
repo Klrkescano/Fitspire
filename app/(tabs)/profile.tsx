@@ -9,6 +9,8 @@ import {
   Image,
   ActivityIndicator,
   ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { useUser } from '../context/UserContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -29,33 +31,103 @@ type Stat = {
   metrics: string;
   Value: number;
 };
+type FitStat = {
+  name: string;
+  value: number;
+  metrics: string;
+  key: string;
+};
 
 const Profile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Stat[]>([]);
+  const [fitstats, setFitStats] = useState<FitStat[]>([]);
   const { user, setUser } = useUser();
-  const [newName, setNewName] = useState<string>(user?.name || '');
-  const [newHeight, setNewHeight] = useState<string>(user?.height || '');
-  const [newWeight, setNewWeight] = useState<string>(user?.weight || '');
-  const [newAge, setNewAge] = useState<string>(user?.age || '');
+  const [newName, setNewName] = useState<string>('');
+  const [newHeight, setNewHeight] = useState<string>('');
+  const [newWeight, setNewWeight] = useState<string>('');
+  const [newAge, setNewAge] = useState<string>('');
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [avatarModalVisible, setAvatarModalVisible] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const statsCollection = collection(db, 'stats');
-    const unsubscribe = onSnapshot(statsCollection, (querySnapshot) => {
-      const stats: Stat[] = [];
-      querySnapshot.forEach((documentSnapshot) => {
-        stats.push({
-          ...documentSnapshot.data(),
-          key: documentSnapshot.id,
-        });
-      });
-      setStats(stats);
-      setLoading(false);
-    });
+    if (user) {
+      setNewName(user.name || '');
+      setNewHeight(user.height || '');
+      setNewWeight(user.weight || '');
+      setNewAge(user.age || '');
+    }
+  }, [user]);
 
-    return () => unsubscribe();
+  useEffect(() => {
+    const statsCollection = collection(db, 'stats');
+
+    const unsubscribe = onSnapshot(
+      statsCollection,
+      (querySnapshot) => {
+        try {
+          const statsData: Stat[] = [];
+          querySnapshot.forEach((documentSnapshot) => {
+            statsData.push({
+              ...(documentSnapshot.data() as Stat),
+              key: documentSnapshot.id,
+            });
+          });
+          setStats(statsData);
+          setLoading(false);
+        } catch (error) {
+          console.error('Error processing Firestore snapshot:', error);
+        }
+      },
+      (error) => {
+        console.error('Firestore subscription error:', error);
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      try {
+        unsubscribe();
+      } catch (error) {
+        console.error('Error unsubscribing from Firestore:', error);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const fitstatsCollection = collection(db, 'fitstats');
+
+    const unsubscribe = onSnapshot(
+      fitstatsCollection,
+      (querySnapshot) => {
+        try {
+          const fitstatsData: FitStat[] = [];
+          querySnapshot.forEach((documentSnapshot) => {
+            fitstatsData.push({
+              ...(documentSnapshot.data() as FitStat),
+              key: documentSnapshot.id,
+            });
+          });
+          setFitStats(fitstatsData);
+          setLoading(false);
+        } catch (error) {
+          console.error('Error processing Firestore snapshot:', error);
+        }
+      },
+      (error) => {
+        console.error('Firestore subscription error:', error);
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      try {
+        unsubscribe();
+      } catch (error) {
+        console.error('Error unsubscribing from Firestore:', error);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -143,7 +215,7 @@ const Profile: React.FC = () => {
     try {
       const auth = getAuth();
       await signOut(auth);
-      router.push('/(auth)/signIn');
+      router.replace('/(auth)/signIn');
     } catch (error) {}
   };
 
@@ -159,15 +231,29 @@ const Profile: React.FC = () => {
     );
   }
 
+  const items = [
+    { name: 'Statistics', icons: require('../../assets/icons/info.png') },
+    { name: 'Exercises', icons: require('../../assets/icons/run.png') },
+    { name: 'Measurements', icons: require('../../assets/icons/filter.png') },
+    { name: 'Calendar', icons: require('../../assets/icons/calendar.png') },
+  ];
+
   return (
     <View className="flex-1">
       <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}>
-        <View className="justify-start items-center p-4 py-10">
-          <View className="flex-row items-center w-full justify-between px-6 mt-6">
+        <View className="justify-start items-center p-4 py-12 mb-12">
+          <View className="flex-row items-center w-full justify-between mb-6 px-6 mt-6">
             <View className="w-16 h-16 rounded-full bg-blue-500 justify-center items-center">
-              <Text className="text-white text-lg font-rubik-bold">
-                {getInitials(user?.name || '')}
-              </Text>
+              <TouchableOpacity onPress={() => setAvatarModalVisible(true)}>
+                <View className="w-16 h-16 rounded-full bg-blue-500 justify-center items-center">
+                  <Text className="text-white text-lg font-bold">
+                    {user?.name
+                      ?.split(' ')
+                      .map((part) => part[0].toUpperCase())
+                      .join('')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
             </View>
             <Text className="text-xl font-rubik-semibold flex-1 ml-4">
               {user?.name || 'Guest'}
@@ -182,69 +268,128 @@ const Profile: React.FC = () => {
               />
             </TouchableOpacity>
           </View>
-          <View className="py-6">
-            <FlatList
-              horizontal
-              data={stats}
-              keyExtractor={(item) => item.key}
-              renderItem={({ item }) => (
-                <View className="w-36 mx-2 h-24 bg-white rounded-lg border border-gray-300 p-4 justify-center items-center">
-                  <Text className="text-base text-gray-600">
-                    {item.Value} {item.metrics}
-                  </Text>
-                  <Text className="text-lg font-rubik">{item.Name}</Text>
-                </View>
-              )}
-            />
+          <View>
+            <View className="py-6">
+              <FlatList
+                horizontal
+                data={stats}
+                style={{ maxHeight: 100 }}
+                keyExtractor={(item) => item.key}
+                renderItem={({ item }) => (
+                  <View className="w-36 mx-2 h-24 bg-white rounded-lg border border-gray-300 p-4 justify-center items-center">
+                    <Text className="text-base text-gray-600">
+                      {item.Value} {item.metrics}
+                    </Text>
+                    <Text className="text-lg font-rubik">{item.Name}</Text>
+                  </View>
+                )}
+              />
+            </View>
           </View>
-        </View>
-      </ScrollView>
-
-      <View className="absolute bottom-0 w-full p-4 bg-white">
-        <TouchableOpacity
-          onPress={handleLogout}
-          className="bg-red-500 p-3 rounded-lg w-full"
-        >
-          <Text className="text-white text-center text-lg">Logout</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Modal visible={modalVisible} transparent animationType="fade">
-        <View className="flex-1 justify-center items-center bg-slate-400 bg-opacity-50 backdrop-blur-xl">
-          <View className="bg-white p-6 rounded-lg w-80">
-            {[
-              ['Name', newName, setNewName],
-              ['Height', newHeight, setNewHeight],
-              ['Weight', newWeight, setNewWeight],
-              ['Age', newAge, setNewAge],
-            ].map(([label, value, setValue]) => (
-              <View key={label} className="flex-row items-center mb-4">
-                <Text className="w-20 text-gray-700">{label}:</Text>
-                <TextInput
-                  value={value}
-                  onChangeText={setValue}
-                  placeholder={`Enter ${label.toLowerCase()}`}
-                  className="flex-1 p-3 bg-gray-100 border border-gray-300 rounded-lg"
-                />
-              </View>
-            ))}
-
-            <View className="flex justify-center items-center w-full">
-              <TouchableOpacity
-                onPress={handleSave}
-                className="bg-blue-500 p-3 rounded-lg w-24 mb-4"
-              >
-                <Text className="text-white text-center">Save</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                className="bg-red-500 p-3 rounded-lg w-24"
-              >
-                <Text className="text-white text-center">Cancel</Text>
-              </TouchableOpacity>
+          <View className="mt-6 px-7 w-full">
+            <Text className="text-black text-2xl font-rubik-bold">
+              Current Stats
+            </Text>
+            <View className="flex-row flex-wrap justify-between mt-4 ">
+              {fitstats.map((item, index) => (
+                <View
+                  key={index}
+                  className="w-[48%] aspect-square border border-gray-300 rounded-lg justify-center items-center mb-4 bg-gray-50"
+                >
+                  <Text className="text-gray-800 font-medium">{item.name}</Text>
+                  <Text className="text-blue-500 font-semibold mt-1">
+                    {item.value} {item.metrics}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+          <View className="px-7 w-full ">
+            <Text className="text-black text-2xl font-rubik-bold">
+              Current Goal
+            </Text>
+            <View className="flex-row flex-wrap justify-between mt-4 ">
+              <Text className="font-rubik text-lg">Lose 5kg in 2 months</Text>
+            </View>
+            <View className="flex-row flex-wrap justify-between mt-10 ">
+              {items.map((item, index) => (
+                <View
+                  key={index}
+                  className="flex flex-row w-[48%] p-3 border border-gray-300 rounded-lg justify-center items-center mb-4 bg-gray-50"
+                >
+                  <Image source={item.icons} className="w-8 h-8 mr-3 " />
+                  <Text className="text-gray-800 font-medium">{item.name}</Text>
+                </View>
+              ))}
             </View>
           </View>
         </View>
+      </ScrollView>
+      <Modal visible={avatarModalVisible} transparent animationType="fade">
+        <TouchableWithoutFeedback onPress={() => setAvatarModalVisible(false)}>
+          <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
+            <View className="bg-white p-6 rounded-lg w-80">
+              <Text className="text-lg font-semibold text-center mb-4">
+                Profile Options
+              </Text>
+
+              <TouchableOpacity
+                onPress={handleLogout}
+                className="bg-red-500 p-4 rounded-lg mb-3"
+              >
+                <Text className="text-white text-center text-lg">Log Out</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setAvatarModalVisible(false)}
+                className="bg-gray-300 p-4 rounded-lg"
+              >
+                <Text className="text-center text-lg">Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View className="flex-1 justify-center items-center bg-slate-400 bg-opacity-50 backdrop-blur-xl">
+            <View className="bg-white p-6 rounded-lg" style={{ width: '80%' }}>
+              {[
+                { label: 'Name', value: newName, setValue: setNewName },
+                { label: 'Height', value: newHeight, setValue: setNewHeight },
+                { label: 'Weight', value: newWeight, setValue: setNewWeight },
+                { label: 'Age', value: newAge, setValue: setNewAge },
+              ].map(({ label, value, setValue }) => (
+                <View key={label} className="flex-row items-center mb-4">
+                  <Text className="w-20 text-gray-700">{label}:</Text>
+                  <TextInput
+                    value={value}
+                    onChangeText={(text) => setValue(text)}
+                    placeholder={`Enter ${label.toLowerCase()}`}
+                    placeholderTextColor="#A9A9A9"
+                    className="flex-1 p-3 bg-gray-100 border border-gray-300 rounded-lg"
+                  />
+                </View>
+              ))}
+
+              <View className="flex justify-center items-center w-full">
+                <TouchableOpacity
+                  onPress={handleSave}
+                  className="bg-blue-500 p-3 rounded-lg w-24 mb-4"
+                >
+                  <Text className="text-white text-center">Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setModalVisible(false)}
+                  className="bg-red-500 p-3 rounded-lg w-24"
+                >
+                  <Text className="text-white text-center">Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </View>
   );
