@@ -1,10 +1,14 @@
-import { View, Text } from 'react-native';
+import { View,Text } from 'react-native';
 import React from 'react';
+import ExerciseTile from '../components/exercisetile';
 
 const workout = () => {
   return (
     <View>
-      <Text>workout</Text>
+      <Text>Workout Page</Text>
+      <View>
+        <ExerciseTile />
+      </View>
     </View>
   );
 };
