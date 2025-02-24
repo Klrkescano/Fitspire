@@ -1,7 +1,7 @@
 import { View, Text, Image } from 'react-native';
 import React from 'react';
 import icons from '../../constants/icons';
-import { UserProvider } from '../context/UserContext'; // Import the UserProvider
+import { UserProvider } from '../context/UserContext'; 
 import { Tabs } from 'expo-router';
 
 const TabsLayout = () => {
