@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, FlatList, Button, Touchable, TouchableOpacity } from 'react-native';
-import { scale, moderateScale } from 'react-native-size-matters';
-import Icon  from 'react-native-vector-icons/FontAwesome';
-import SetItem from './setItem';
+import { View, Text, TextInput, FlatList, Button, Dimensions, StyleSheet } from 'react-native';
+import exerciseData from '../../assets/data/exercises.json';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
+const { width } = Dimensions.get('window');
 
 interface Set {
     id: number;
@@ -11,135 +11,153 @@ interface Set {
     reps: number;
 }
 
+interface Exercise {
+    id: number;
+    name: string;
+    muscle: string;
+    equipment: string;
+    instruction: string;
+    sets: Set[];
+}
 
 const ExerciseTile = () => {
-    const exercises = require('../../assets/data/exercises.json');
-    const exercise = exercises[0];
+    const [exercises, setExercises] = useState<Exercise[]>(() =>
+        exerciseData.map(exercise => ({
+            ...exercise,
+            sets: [],
+        }))
+    );
 
-    const [weight, setWeight] = useState<string>('');
-    const [reps, setReps] = useState<string>('');
-    const [sets, setSets] = useState<Set[]>([]);
-
-    const newSet = { weight, reps };
-
-    const handleSaveSet = () => {
-
-        if (!weight || !reps) { 
-            return;
-        // TODO: Add error message or alert for adding empty weight or reps
-        }
-
-        const newSet: Set = { 
-        id: sets.length + 1,
-        weight: parseFloat(weight),
-        reps: parseInt( reps, 10),
-        };
-
-        setSets([...sets, newSet]);
-        setWeight('');
-        setReps('');
+    const updateSet = (exerciseId: number, setIndex: number, key: string, value: string) => {
+        const newExercises = exercises.map((exercise) => {
+            if (exercise.id === exerciseId) {
+                return {
+                    ...exercise,
+                    sets: exercise.sets.map((set, index) => 
+                        index === setIndex ? { ...set, [key]: value } : set
+                    ),
+                };
+            }
+            return exercise;
+        });
+        setExercises(newExercises);
     };
 
-    const handleDeleteSet = (id: number) => {
-        const newSets = sets.filter((set) => set.id !== id);
-        setSets(newSets);
+    const addSet = (exerciseId: number) => {
+        setExercises(exercises.map((exercise) => 
+            exercise.id === exerciseId
+                ? { ...exercise, sets: [...exercise.sets, { id: exercise.sets.length + 1, weight: 0, reps: 0 }] }
+                : exercise
+        ));
     };
+
+    const deleteSet = (exerciseId: number) => {
+        setExercises(exercises.map((exercise) => 
+            exercise.id === exerciseId ? { ...exercise, sets: exercise.sets.slice(0, -1) } : exercise
+        ));
+    };
+
+    const renderExercise = ({ item }: { item: Exercise }) => (
+        <View style={styles.card}>
+            {/* Exercise Name Header */}
+            <Text style={styles.exerciseName}>{item.name}</Text>
+            <Text style={styles.detailText}>💪 Muscle: {item.muscle}</Text>
+            <Text style={styles.detailText}>🏋️ Equipment: {item.equipment}</Text>
+            <Text style={styles.detailText}>📖 Instructions: {item.instruction}</Text>
+
+            {/* Sets Section */}
+            <View style={styles.setContainer}>
+                {item.sets.map((set, index) => (
+                    <View key={index} style={styles.setRow}>
+                        <Text>Set {index + 1}:</Text>
+                        <TextInput
+                            placeholder="Weight"
+                            keyboardType="numeric"
+                            value={set.weight.toString()}
+                            onChangeText={(text) => updateSet(item.id, index, 'weight', text)}
+                            style={styles.input}
+                        />
+                        <Text>lbs</Text>
+                        <Icon name="times" size={20} color="black" />
+                        <TextInput
+                            placeholder="Reps"
+                            keyboardType="numeric"
+                            value={set.reps.toString()}
+                            onChangeText={(text) => updateSet(item.id, index, 'reps', text)}
+                            style={styles.input}
+                        />
+                    </View>
+                ))}
+            </View>
+
+            {/* Buttons */}
+            <View style={styles.buttonContainer}>
+                <Button title="➕ Add Set" onPress={() => addSet(item.id)} />
+                <Button title="🗑️ Delete Set" onPress={() => deleteSet(item.id)} />
+            </View>
+        </View>
+    );
 
     return (
-        <View style={styles.container}>
-        <View>
-            {/* Exercise Name Header */}
-            <Text style={styles.text}>Exercise: {exercise.name}</Text>
-            <Text style={styles.text}>Muscle: {exercise.target_muscle_group}</Text>
-
-            <View style={styles.setInput}>
-                <Text style={styles.text}>Set</Text>
-                <TextInput
-                    style={[styles.input, { width: moderateScale(100) }]}
-                    placeholder="Weight"
-                    keyboardType="numeric"
-                    value={weight}
-                    onChangeText={setWeight}
-                />
-                <Text style={styles.text}>lbs</Text>
-                <Icon name="times" size={moderateScale(20)} color="Blue" />
-                <TextInput
-                    style={[styles.input, { width: moderateScale(100) }]}
-                    placeholder="Reps"
-                    keyboardType="numeric"
-                    value={reps}
-                    onChangeText={setReps}
-                />
-            </View>
-            <Button title="Save Set" onPress={handleSaveSet} />
-            <FlatList
-                data = {sets}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                    <View style={styles.setList}>
-                        <Text> Set {item.id}: </Text>
-                        <Text>{item.weight} lbs </Text>
-                        <Icon name="times" size={moderateScale(15)} color="#00000" />
-                        <Text>{item.reps} reps </Text>
-                        <TouchableOpacity onPress={() => handleDeleteSet(item.id)}>
-                            <Icon name="minus" size={moderateScale(15)} color="red" />
-                        </TouchableOpacity>
-                    </View>
-
-                )}
-            />
-        </View>
-        </View>
-  );
+        <FlatList
+            data={exercises}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderExercise}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+        />
+    );
 };
 
-export default ExerciseTile;
-
 const styles = StyleSheet.create({
-    container: {
+    card: {
+        width: width * 0.85,
+        margin: 15,
+        padding: 20,
+        borderRadius: 15,
         backgroundColor: '#fff',
-        padding: scale(16),
-        marginVertical: scale(10),
-        borderRadius: scale(8),
-        elevation: 3,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: scale(2) },
         shadowOpacity: 0.2,
-        shadowRadius: scale(4),
+        shadowOffset: { width: 0, height: 4 },
+        shadowRadius: 6,
+        elevation: 5, // for Android shadow
     },
-
-    input: {
-        height: scale(40),
-        borderColor: 'gray',
-        margin: scale(12),
+    exerciseName: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    detailText: {
+        fontSize: 14,
+        color: '#555',
+        marginBottom: 5,
+    },
+    setContainer: {
+        marginTop: 10,
+        padding: 10,
+        backgroundColor: '#f8f8f8',
+        borderRadius: 10,
         borderWidth: 1,
+        borderColor: '#ddd',
     },
-
-    setInput: {
+    setRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: scale(10),
-        marginVertical: scale(5),
-        borderRadius: scale(5),
+        paddingVertical: 5,
     },
-
-    text: {
-        fontFamily: 'Arial',
-        color: '#000',
-        fontSize: moderateScale(14),
+    input: {
+        borderBottomWidth: 1,
+        borderBottomColor: 'black',
+        width: 50,
+        textAlign: 'center',
     },
-
-    setList: {
+    buttonContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        padding: scale(10),
-        marginVertical: scale(5),
-        borderRadius: scale(5),
-        backgroundColor: '#f4f4f4',
-        borderWidth: 1,
-        borderColor: '#ddd',
-    }
-
-
+        marginTop: 15,
+    },
 });
+
+export default ExerciseTile;
