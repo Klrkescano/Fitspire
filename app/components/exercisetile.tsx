@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, FlatList, Button, Dimensions, StyleSheet } from 'react-native';
 import exerciseData from '../../assets/data/exercises.json';
-import Icon from 'react-native-vector-icons/FontAwesome';
 
-const { width } = Dimensions.get('window');
+import Icon  from 'react-native-vector-icons/FontAwesome';
+
+const { width,height } = Dimensions.get('window');
 
 interface Set {
     id: number;
@@ -21,9 +22,13 @@ interface Exercise {
 }
 
 const ExerciseTile = () => {
-    const [exercises, setExercises] = useState<Exercise[]>(() =>
+    const [exercises, setExercises] = useState<Exercise[]>(() => 
         exerciseData.map(exercise => ({
-            ...exercise,
+            id: exercise.id,
+            name: exercise.name,
+            muscle: exercise.muscle,
+            equipment: exercise.equipment,
+            instruction: exercise.instruction,
             sets: [],
         }))
     );
@@ -33,9 +38,15 @@ const ExerciseTile = () => {
             if (exercise.id === exerciseId) {
                 return {
                     ...exercise,
-                    sets: exercise.sets.map((set, index) => 
-                        index === setIndex ? { ...set, [key]: value } : set
-                    ),
+                    sets: exercise.sets.map((set, index) => {
+                        if (index === setIndex) {
+                            return {
+                                ...set,
+                                [key]: value,
+                            };
+                        }
+                        return set;
+                    }),
                 };
             }
             return exercise;
@@ -44,29 +55,50 @@ const ExerciseTile = () => {
     };
 
     const addSet = (exerciseId: number) => {
-        setExercises(exercises.map((exercise) => 
-            exercise.id === exerciseId
-                ? { ...exercise, sets: [...exercise.sets, { id: exercise.sets.length + 1, weight: 0, reps: 0 }] }
-                : exercise
-        ));
+        const newExercises = exercises.map((exercise) => {
+            if (exercise.id === exerciseId) {
+                return {
+                    ...exercise,
+                    sets: [
+                        ...exercise.sets,
+                        {
+                            id: exercise.sets.length + 1,
+                            weight: 0,
+                            reps: 0,
+                        },
+                    ],
+                };
+            }
+            return exercise;
+        });
+        setExercises(newExercises);
     };
 
     const deleteSet = (exerciseId: number) => {
-        setExercises(exercises.map((exercise) => 
-            exercise.id === exerciseId ? { ...exercise, sets: exercise.sets.slice(0, -1) } : exercise
-        ));
+        const newExercises = exercises.map((exercise) => {
+            if (exercise.id === exerciseId) {
+                return {
+                    ...exercise,
+                    sets: exercise.sets.slice(0, -1),
+                };
+            }
+            return exercise;
+        });
+        setExercises(newExercises);
     };
 
-    const renderExercise = ({ item }: { item: Exercise }) => (
-        <View style={styles.card}>
-            {/* Exercise Name Header */}
-            <Text style={styles.exerciseName}>{item.name}</Text>
-            <Text style={styles.detailText}>💪 Muscle: {item.muscle}</Text>
-            <Text style={styles.detailText}>🏋️ Equipment: {item.equipment}</Text>
-            <Text style={styles.detailText}>📖 Instructions: {item.instruction}</Text>
+    const renderExercise = ({ item } : {item: Exercise}) => {
 
-            {/* Sets Section */}
-            <View style={styles.setContainer}>
+        return (
+            <View style={styles.cardContainer}>
+                {/* Exercise Name Header */}
+                <Text style={styles.exerciseName}>{item.name}</Text>
+                <Text style={styles.detailText}>Muscle: {item.muscle}</Text>
+                <Text style={styles.detailText}>Equipment: {item.equipment}</Text>
+                <Text style={styles.detailText}>Instructions: {item.instruction}</Text>   
+
+                {/* Sets */}
+                <View style={styles.setContainer}>
                 {item.sets.map((set, index) => (
                     <View key={index} style={styles.setRow}>
                         <Text>Set {index + 1}:</Text>
@@ -74,64 +106,87 @@ const ExerciseTile = () => {
                             placeholder="Weight"
                             keyboardType="numeric"
                             value={set.weight.toString()}
-                            onChangeText={(text) => updateSet(item.id, index, 'weight', text)}
+                            // style={styles.input}
+                            onChangeText = {(text) => updateSet(item.id, index, 'weight', text)}
                             style={styles.input}
                         />
                         <Text>lbs</Text>
-                        <Icon name="times" size={20} color="black" />
+                        <Icon name="times" size={20} color="black"/>
                         <TextInput
                             placeholder="Reps"
                             keyboardType="numeric"
                             value={set.reps.toString()}
+                            // style={styles.input}
                             onChangeText={(text) => updateSet(item.id, index, 'reps', text)}
                             style={styles.input}
                         />
                     </View>
                 ))}
-            </View>
+                </View>
 
-            {/* Buttons */}
-            <View style={styles.buttonContainer}>
-                <Button title="➕ Add Set" onPress={() => addSet(item.id)} />
-                <Button title="🗑️ Delete Set" onPress={() => deleteSet(item.id)} />
+                {/* Add/Delete Set Buttons */}
+
+                <View style={styles.buttonContainer}>
+                    <Button title="Add Set" onPress={() => addSet(item.id)} />
+                    <Button title="Delete Set" onPress={() => deleteSet(item.id)} />
+                </View>
             </View>
-        </View>
-    );
+        );
+    };
 
     return (
-        <FlatList
-            data={exercises}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={renderExercise}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-        />
+        <View>
+            <FlatList
+                data={exercises}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={renderExercise}
+                horizontal={true}
+                pagingEnabled={true}
+                showsHorizontalScrollIndicator={false}
+                snapToAlignment='center'
+                snapToInterval={width}
+                decelerationRate='fast'
+                initialNumToRender={1}
+                maxToRenderPerBatch={2}
+                windowSize={3}
+                removeClippedSubviews={true}
+                getItemLayout={(data, index) => ({
+                    length: width,
+                    offset: width * index,
+                    index,
+                })
+                }
+            />
+        </View>
     );
-};
+}
+
+export default ExerciseTile;
+
 
 const styles = StyleSheet.create({
-    card: {
-        width: width * 0.85,
-        margin: 15,
+    cardContainer: {
+        width: width * 0.9,
+        height: height * 0.8,
         padding: 20,
-        borderRadius: 15,
+        borderRadius: 20,
         backgroundColor: '#fff',
+        marginHorizontal: width * 0.05,
         shadowColor: '#000',
-        shadowOpacity: 0.2,
-        shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 6,
-        elevation: 5, // for Android shadow
-    },
-    exerciseName: {
-        fontSize: 22,
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 5 },
+        shadowRadius: 10,
+        elevation: 5,
+    }, 
+    exerciseName:{
+        fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 10,
     },
     detailText: {
-        fontSize: 14,
+        fontSize: 16,
         color: '#555',
-        marginBottom: 5,
+        marginBottom: 10,
     },
     setContainer: {
         marginTop: 10,
@@ -143,8 +198,8 @@ const styles = StyleSheet.create({
     },
     setRow: {
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'space-between',
+        alignItems: 'center',
         paddingVertical: 5,
     },
     input: {
@@ -156,8 +211,6 @@ const styles = StyleSheet.create({
     buttonContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 15,
+        marginTop: 10,
     },
 });
-
-export default ExerciseTile;
