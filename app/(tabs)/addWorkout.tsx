@@ -82,7 +82,7 @@ const AddWorkoutMeal = () => {
               <Text className="text-2xl font-bold text-gray-800 mb-4">
                 Add Workout
               </Text>
-              {/* Workout Input */}
+
               <View className="flex-row items-center mb-4 border border-gray-300 rounded-lg p-2">
                 <TextInput
                   className="flex-1 text-lg text-gray-800"

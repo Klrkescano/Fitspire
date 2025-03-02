@@ -242,66 +242,66 @@ const Profile: React.FC = () => {
     <View className="flex-1">
       <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}>
         <View className="justify-start items-center p-4 py-12 mb-12">
-          <View className="flex-row items-center w-full justify-between mb-6 px-6 mt-6">
-            <View className="w-16 h-16 rounded-full bg-blue-500 justify-center items-center">
-              <TouchableOpacity onPress={() => setAvatarModalVisible(true)}>
-                <View className="w-16 h-16 rounded-full bg-blue-500 justify-center items-center">
-                  <Text className="text-white text-lg font-bold">
-                    {user?.name
-                      ?.split(' ')
-                      .map((part) => part[0].toUpperCase())
-                      .join('')}
-                  </Text>
-                </View>
+          <View className="flex-1 items-center w-full justify-between mb-6 px-6 mt-6">
+            <View className="w-36 h-36 rounded-full bg-slate-600 justify-center items-center mb-6">
+              <View className="w-16 h-16 rounded-full  justify-center items-center">
+                <Text className="text-white text-5xl font-bold">
+                  {user?.name
+                    ?.split(' ')
+                    .map((part) => part[0].toUpperCase())
+                    .join('')}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setModalVisible(true)}
+                className="absolute -bottom-2 -right-2  p-3 rounded-xl"
+              >
+                <Image
+                  source={require('../../assets/icons/edit.png')}
+                  className="h-8 w-8"
+                />
               </TouchableOpacity>
             </View>
+
             <Text className="text-xl font-rubik-semibold flex-1 ml-4">
               {user?.name || 'Guest'}
             </Text>
-            <TouchableOpacity
-              onPress={() => setModalVisible(true)}
-              className="p-2 rounded-xl"
-            >
-              <Image
-                source={require('../../assets/icons/edit.png')}
-                className="h-8 w-8"
-              />
-            </TouchableOpacity>
+            <Text>{user?.email || 'guest@example.com'}</Text>
           </View>
-          <View>
-            <View className="py-6">
-              <FlatList
-                horizontal
-                data={stats}
-                style={{ maxHeight: 100 }}
-                keyExtractor={(item) => item.key}
-                renderItem={({ item }) => (
-                  <View className="w-36 mx-2 h-24 bg-white rounded-lg border border-gray-300 p-4 justify-center items-center">
-                    <Text className="text-base text-gray-600">
-                      {item.Value} {item.metrics}
-                    </Text>
-                    <Text className="text-lg font-rubik">{item.Name}</Text>
-                  </View>
-                )}
-              />
-            </View>
-          </View>
+
           <View className="mt-6 px-7 w-full">
             <Text className="text-black text-2xl font-rubik-bold">
               Current Stats
             </Text>
-            <View className="flex-row flex-wrap justify-between mt-4 ">
-              {fitstats.map((item, index) => (
+            <View className="flex-row flex-wrap justify-between mt-4">
+              {stats.map((item, index) => (
                 <View
                   key={index}
                   className="w-[48%] aspect-square border border-gray-300 rounded-lg justify-center items-center mb-4 bg-gray-50"
                 >
-                  <Text className="text-gray-800 font-medium">{item.name}</Text>
+                  <Text className="text-gray-800 font-medium">{item.Name}</Text>
                   <Text className="text-blue-500 font-semibold mt-1">
-                    {item.value} {item.metrics}
+                    {item.Value} {item.metrics}
                   </Text>
                 </View>
               ))}
+
+              <View className="w-[48%] aspect-square border border-gray-300 rounded-lg justify-center items-center mb-4 bg-gray-50">
+                <Text className="text-gray-800 font-medium">BMI</Text>
+                <Text className="text-blue-500 font-semibold mt-1">
+                  {(() => {
+                    const weight =
+                      stats.find((item) => item.Name === 'Weight')?.Value || 0;
+                    const heightCm =
+                      stats.find((item) => item.Name === 'Height')?.Value || 0;
+                    const heightM = heightCm / 100; // Convert cm to meters
+                    return heightM > 0
+                      ? (weight / (heightM * heightM)).toFixed(1)
+                      : 'N/A';
+                  })()}
+                </Text>
+              </View>
             </View>
           </View>
           <View className="px-7 w-full ">
@@ -323,33 +323,16 @@ const Profile: React.FC = () => {
               ))}
             </View>
           </View>
+          <View>
+            <TouchableOpacity onPress={handleLogout}>
+              <Text className="text-blue-500 font-bold text-lg mt-10">
+                {' '}
+                Logout
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
-      <Modal visible={avatarModalVisible} transparent animationType="fade">
-        <TouchableWithoutFeedback onPress={() => setAvatarModalVisible(false)}>
-          <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
-            <View className="bg-white p-6 rounded-lg w-80">
-              <Text className="text-lg font-semibold text-center mb-4">
-                Profile Options
-              </Text>
-
-              <TouchableOpacity
-                onPress={handleLogout}
-                className="bg-red-500 p-4 rounded-lg mb-3"
-              >
-                <Text className="text-white text-center text-lg">Log Out</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setAvatarModalVisible(false)}
-                className="bg-gray-300 p-4 rounded-lg"
-              >
-                <Text className="text-center text-lg">Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
 
       <Modal visible={modalVisible} transparent animationType="fade">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
