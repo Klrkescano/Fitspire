@@ -6,9 +6,9 @@ interface User {
   email: string;
   avatar: string | null;
   initials: string | null;
-  height?: string; // ✅ Added height
-  weight?: string; // ✅ Added weight
-  age?: string; // ✅ Added age
+  height?: string;
+  weight?: string;
+  age?: string;
 }
 
 // Define the context type

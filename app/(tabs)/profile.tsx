@@ -295,7 +295,7 @@ const Profile: React.FC = () => {
                       stats.find((item) => item.Name === 'Weight')?.Value || 0;
                     const heightCm =
                       stats.find((item) => item.Name === 'Height')?.Value || 0;
-                    const heightM = heightCm / 100; // Convert cm to meters
+                    const heightM = heightCm / 100;
                     return heightM > 0
                       ? (weight / (heightM * heightM)).toFixed(1)
                       : 'N/A';

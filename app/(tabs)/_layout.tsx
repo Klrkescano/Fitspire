@@ -5,90 +5,93 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-  ScrollView,
+  FlatList,
 } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import icons from '../../constants/icons';
 import { UserProvider } from '../context/UserContext';
 import { Tabs } from 'expo-router';
-import { Calendar, DateData } from 'react-native-calendars';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { db, auth } from '@/firebaseConfig';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
+
+// Workout categories (Custom Options)
+const workoutTypes = [
+  'Strength Training',
+  'Cardio',
+  'Yoga',
+  'HIIT',
+  'Pilates',
+  'Stretching',
+  'CrossFit',
+  'Cycling',
+  'Running',
+  'Swimming',
+];
+
+const durations = ['15 min', '30 min', '45 min', '1 hour'];
 
 const TabsLayout = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [workout, setWorkout] = useState('');
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [workouts, setWorkouts] = useState<{ [key: string]: string[] }>({});
-
-  useEffect(() => {
-    loadWorkouts();
-  }, []);
+  const [duration, setDuration] = useState('30 min');
+  const [workoutType, setWorkoutType] = useState('Strength Training');
+  const [dropdownTypeVisible, setDropdownTypeVisible] = useState(false);
+  const [dropdownDurationVisible, setDropdownDurationVisible] = useState(false);
 
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
 
-  // Load workouts from AsyncStorage
-  const loadWorkouts = async () => {
+  // Function to Add Workout to Firestore (Auto Update)
+  const addWorkout = async () => {
+    if (workout.trim() === '') return;
     try {
-      const storedWorkouts = await AsyncStorage.getItem('workouts');
-      if (storedWorkouts) {
-        setWorkouts(JSON.parse(storedWorkouts));
-      }
+      const user = auth.currentUser;
+      if (!user) return;
+
+      await addDoc(collection(db, 'user', user.uid, 'workouts'), {
+        name: workout,
+        duration: duration,
+        type: workoutType,
+        date: Timestamp.now(),
+      });
+
+      setWorkout('');
+      setDuration('30 min');
+      setWorkoutType('Strength Training');
+      setModalVisible(false);
+      console.log('✅ Workout added successfully!');
     } catch (error) {
-      console.error('Failed to load workouts', error);
+      console.error('❌ Error adding workout:', error);
     }
   };
 
-  // Save workouts to AsyncStorage
-  const saveWorkouts = async (updatedWorkouts: { [key: string]: string[] }) => {
-    try {
-      await AsyncStorage.setItem('workouts', JSON.stringify(updatedWorkouts));
-    } catch (error) {
-      console.error('Failed to save workouts', error);
-    }
-  };
-
-  const addWorkout = () => {
-    if (!selectedDate || workout.trim() === '') return;
-
-    const updatedWorkouts = {
-      ...workouts,
-      [selectedDate]: [...(workouts[selectedDate] || []), workout],
-    };
-
-    setWorkouts(updatedWorkouts);
-    saveWorkouts(updatedWorkouts);
-    setWorkout('');
-    setModalVisible(false);
-  };
-
-  const TabIcon = ({
-    focused,
-    icon,
-    title,
-  }: {
-    focused: boolean;
-    icon: any;
-    title: string;
-  }) => {
-    return (
-      <View className="flex-1 mt-3 flex flex-col items-center">
-        <Image
-          source={icon}
-          tintColor={focused ? '#0061ff' : '#666876'}
-          resizeMode="contain"
-          className="size-6"
+  // Custom Dropdown Rendering
+  const renderDropdown = (
+    visible: boolean,
+    items: string[],
+    setValue: (value: string) => void,
+    toggleDropdown: () => void
+  ) => {
+    return visible ? (
+      <View className="absolute bg-white border border-gray-300 rounded-lg w-full shadow-lg z-50">
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => {
+                setValue(item);
+                toggleDropdown();
+              }}
+              className="p-3 border-b border-gray-200"
+            >
+              <Text className="text-gray-800">{item}</Text>
+            </TouchableOpacity>
+          )}
         />
-        <Text
-          className={`${
-            focused ? 'text-[#0061ff] font-rubik-medium' : 'font-rubik'
-          } text-xs w-full text-center mt-1`}
-        >
-          {title}
-        </Text>
       </View>
-    );
+    ) : null;
   };
 
   return (
@@ -113,7 +116,11 @@ const TabsLayout = () => {
               title: 'Home',
               headerShown: false,
               tabBarIcon: ({ focused }) => (
-                <TabIcon icon={icons.home} focused={focused} title="Home" />
+                <Image
+                  source={icons.home}
+                  tintColor={focused ? '#0061ff' : '#666876'}
+                  className="size-6"
+                />
               ),
             }}
           />
@@ -123,15 +130,15 @@ const TabsLayout = () => {
               title: 'Workout',
               headerShown: false,
               tabBarIcon: ({ focused }) => (
-                <TabIcon
-                  icon={icons.dumbell}
-                  focused={focused}
-                  title="Workout"
+                <Image
+                  source={icons.dumbell}
+                  tintColor={focused ? '#0061ff' : '#666876'}
+                  className="size-6"
                 />
               ),
             }}
           />
-          {/* Floating Action Button */}
+
           <Tabs.Screen
             name="addWorkout"
             options={{
@@ -170,10 +177,10 @@ const TabsLayout = () => {
               title: 'Profile',
               headerShown: false,
               tabBarIcon: ({ focused }) => (
-                <TabIcon
-                  icon={icons.person}
-                  focused={focused}
-                  title="Profile"
+                <Image
+                  source={icons.person}
+                  tintColor={focused ? '#0061ff' : '#666876'}
+                  className="size-6"
                 />
               ),
             }}
@@ -184,17 +191,16 @@ const TabsLayout = () => {
               title: 'Calendar',
               headerShown: false,
               tabBarIcon: ({ focused }) => (
-                <TabIcon
-                  icon={icons.calendar}
-                  focused={focused}
-                  title="Calendar"
+                <Image
+                  source={icons.calendar}
+                  tintColor={focused ? '#0061ff' : '#666876'}
+                  className="size-6"
                 />
               ),
             }}
           />
         </Tabs>
 
-        {/* Bottom Sheet Modal */}
         <Modal
           visible={isModalVisible}
           animationType="slide"
@@ -207,32 +213,6 @@ const TabsLayout = () => {
                 Add Workout
               </Text>
 
-              {/* Calendar Selection */}
-              <ScrollView className="bg-gray-100 rounded-lg shadow-lg mb-4">
-                <Calendar
-                  onDayPress={(day: DateData) =>
-                    setSelectedDate(day.dateString)
-                  }
-                  markedDates={
-                    selectedDate
-                      ? {
-                          [selectedDate]: {
-                            selected: true,
-                            selectedColor: '#0061ff',
-                          },
-                        }
-                      : {}
-                  }
-                  theme={{
-                    selectedDayBackgroundColor: '#0061ff',
-                    selectedDayTextColor: '#ffffff',
-                    todayTextColor: '#ff5733',
-                    arrowColor: '#0061ff',
-                  }}
-                />
-              </ScrollView>
-
-              {/* Workout Input */}
               <TextInput
                 className="border border-gray-300 rounded-lg p-3 text-lg text-gray-800"
                 placeholder="Enter workout..."
@@ -241,11 +221,43 @@ const TabsLayout = () => {
                 onChangeText={setWorkout}
               />
 
+              <Text className="text-gray-700 text-lg mt-4">Workout Type</Text>
+              <TouchableOpacity
+                onPress={() => setDropdownTypeVisible(!dropdownTypeVisible)}
+                className="border border-gray-300 rounded-lg p-3 mt-2"
+              >
+                <Text className="text-gray-800">{workoutType}</Text>
+              </TouchableOpacity>
+              {renderDropdown(
+                dropdownTypeVisible,
+                workoutTypes,
+                setWorkoutType,
+                () => setDropdownTypeVisible(false)
+              )}
+
+              <Text className="text-gray-700 text-lg mt-4">Duration</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  setDropdownDurationVisible(!dropdownDurationVisible)
+                }
+                className="border border-gray-300 rounded-lg p-3 mt-2"
+              >
+                <Text className="text-gray-800">{duration}</Text>
+              </TouchableOpacity>
+              {renderDropdown(
+                dropdownDurationVisible,
+                durations,
+                setDuration,
+                () => setDropdownDurationVisible(false)
+              )}
+
               <TouchableOpacity
                 onPress={addWorkout}
                 className="bg-blue-500 p-3 rounded-lg mt-4"
               >
-                <Text className="text-white text-center text-lg">Add</Text>
+                <Text className="text-white text-center text-lg">
+                  Add Workout
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={toggleModal} className="mt-2 p-3">
