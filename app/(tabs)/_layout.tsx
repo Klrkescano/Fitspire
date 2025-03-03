@@ -9,7 +9,11 @@ import {
 } from 'react-native';
 import React, { useState } from 'react';
 import icons from '../../constants/icons';
+<<<<<<< HEAD
+import { UserProvider } from '../context/UserContext'; 
+=======
 import { UserProvider } from '../context/UserContext';
+>>>>>>> ca25d62b82514546012b2c2b7bf49d0a288bcab4
 import { Tabs } from 'expo-router';
 import { db, auth } from '@/firebaseConfig';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
