@@ -1,19 +1,18 @@
 import { View,Text } from 'react-native';
 import React from 'react';
-import ExerciseTile from '../components/exerciseTile';
-// import ExerciseLibrary from '../components/exerciseLibrary';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import ExerciseTile from '../components/exerciseTile';
+import ExerciseLibrary from '../components/exerciseLibrary';
+import { Search } from 'lucide-react-native';
 
 const workout = () => {
   return (
-    <SafeAreaView>
+    <View>
       <Text>Workout Page</Text>
-      <View>
-        <ExerciseTile />
-
-        {/* <ExerciseLibrary /> */}
-      </View>
-    </SafeAreaView>
+        {/* <ExerciseTile /> */}
+        <View>
+          <ExerciseLibrary />
+        </View>
+    </View>
   );
 };
 
