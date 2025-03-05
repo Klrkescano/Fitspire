@@ -28,7 +28,6 @@ const SignIn = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const router = useRouter();
 
-  // Prevent Back Navigation if Not Logged In
   useFocusEffect(
     useCallback(() => {
       const checkAuth = onAuthStateChanged(auth, (user) => {
@@ -45,7 +44,6 @@ const SignIn = () => {
     }, [])
   );
 
-  // Handle Email/Password Sign In
   const handleSignIn = useCallback(async () => {
     if (!form.email || !form.password) {
       Alert.alert('Error', 'Please fill in both fields');
