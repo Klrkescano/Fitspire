@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "name": "Bench Press",
+    "muscle": "Chest",
+    "equipment": "Barbell",
+    "instruction": "A compound exercise that targets the chest, shoulders, and triceps. Performed using a barbell or dumbbells on a flat bench.",
+    "sets": [
+      { "id": 1, "reps": null, "weight": null }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Squat",
+    "muscle": "Legs",
+    "equipment": "Barbell",
+    "instruction": "A fundamental lower-body exercise that strengthens the quadriceps, hamstrings, and glutes.",
+    "sets": [
+      { "id": 1, "reps": null, "weight": null }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Deadlift",
+    "muscle": "Back",
+    "equipment": "Barbell",
+    "instruction": "A full-body movement that primarily targets the lower back, hamstrings, and glutes.",
+    "sets": [
+      { "id": 1, "reps": null, "weight": null }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Pull-Up",
+    "muscle": "Back",
+    "equipment": "Bodyweight",
+    "instruction": "A bodyweight exercise that targets the upper back and biceps by pulling up to a bar.",
+    "sets": [
+      { "id": 1, "reps": null, "weight": null }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Shoulder Press",
+    "muscle": "Shoulders",
+    "equipment": "Dumbbells",
+    "instruction": "A pressing movement that strengthens the deltoids and triceps by pushing a weight overhead.",
+    "sets": [
+      { "id": 1, "reps": null, "weight": null }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Bicep Curl",
+    "muscle": "Arms",
+    "equipment": "Dumbbells",
+    "instruction": "An isolation exercise that targets the biceps by curling a dumbbell toward the shoulders.",
+    "sets": [
+      { "id": 1, "reps": null, "weight": null }
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Tricep Dips",
+    "muscle": "Arms",
+    "equipment": "Bodyweight",
+    "instruction": "A bodyweight exercise that targets the triceps by lowering and raising the body using parallel bars.",
+    "sets": [
+      { "id": 1, "reps": null, "weight": null }
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Lunges",
+    "muscle": "Legs",
+    "equipment": "Bodyweight",
+    "instruction": "A unilateral leg exercise that improves balance and strength.",
+    "sets": [
+      { "id": 1, "reps": null, "weight": null }
+    ]
+  },
+  {
+    "id": 9,
+    "name": "Plank",
+    "muscle": "Core",
+    "equipment": "Bodyweight",
+    "instruction": "An isometric core exercise that strengthens the abs, lower back, and shoulders.",
+    "sets": [
+      { "id": 1, "reps": null, "weight": null }
+    ]
+  },
+  {
+    "id": 10,
+    "name": "Russian Twists",
+    "muscle": "Core",
+    "equipment": "Bodyweight",
+    "instruction": "A rotational core exercise that targets the obliques.",
+    "sets": [
+      { "id": 1, "reps": null, "weight": null }
+    ]
+  }
+]
