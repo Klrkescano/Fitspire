@@ -12,9 +12,10 @@ interface Exercise {
 
 interface ExerciseItemProps {
     exercise: Exercise;
+    onSelect: () => void;
 }
 
-const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
+const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, onSelect }) => {
     return (
         <TouchableOpacity style={styles.card}>
           <View style={styles.textContainer}>
@@ -23,7 +24,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
               {exercise.muscle} | {exercise.equipment}
             </Text>
           </View>
-          <Text style={styles.add}>{'+'}</Text>
+          <Text style={styles.add} onPress={onSelect}>{'+'}</Text>
         </TouchableOpacity>
       );
     };

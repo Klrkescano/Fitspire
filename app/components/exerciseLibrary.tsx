@@ -1,9 +1,18 @@
-import { View,Text, SafeAreaView, FlatList,TextInput, StyleSheet } from "react-native";
+import { View,Text, FlatList,TextInput, StyleSheet } from "react-native";
 import React, {useState} from "react";
 import exerciseData from "../../assets/data/exercises.json";
 import ExerciseItem from "../components/exerciseItem";
+import { useRouter } from "expo-router";
 
-const SearchExercise = () => {
+interface Exercise {
+  id: number;
+  name: string;
+  muscle: string;
+  equipment: string;
+}
+
+const ExerciseLibrary = () => {
+  const router = useRouter();
   const exercises = exerciseData;
 
   const [searchInput, setSearchInput] = useState<string>('');
@@ -12,6 +21,13 @@ const SearchExercise = () => {
     exercise.name.toLowerCase().includes(searchInput.toLowerCase())
   );
   
+  const handleSelectExercise = (exercise: Exercise): void => {
+    router.push({
+      pathname: '/workout',
+      params: { selectedExercise: JSON.stringify(exercise) },
+    });
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.innerContainer}>
@@ -30,7 +46,7 @@ const SearchExercise = () => {
         {/* Exercise List */}
         <FlatList
           data={searchResults}
-          renderItem={({ item }) => <ExerciseItem exercise={item} />}
+          renderItem={({ item }) => <ExerciseItem exercise={item} onSelect={() => handleSelectExercise(item)} />}
           keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={<Text style={styles.emptyText}>No exercises found</Text>}
         />
@@ -75,4 +91,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SearchExercise;
+export default ExerciseLibrary;
