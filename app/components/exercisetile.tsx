@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, FlatList, Button, Dimensions, StyleSheet } from 'react-native';
 import exerciseData from '../../assets/data/exercises.json';
-
-import Icon  from 'react-native-vector-icons/FontAwesome';
+import SetComponent from './setComponent';
 
 const { width,height } = Dimensions.get('window');
 
@@ -100,27 +99,7 @@ const ExerciseTile = () => {
                 {/* Sets */}
                 <View style={styles.setContainer}>
                 {item.sets.map((set, index) => (
-                    <View key={index} style={styles.setRow}>
-                        <Text>Set {index + 1}:</Text>
-                        <TextInput
-                            placeholder="Weight"
-                            keyboardType="numeric"
-                            value={set.weight.toString()}
-                            // style={styles.input}
-                            onChangeText = {(text) => updateSet(item.id, index, 'weight', text)}
-                            style={styles.input}
-                        />
-                        <Text>lbs</Text>
-                        <Icon name="times" size={20} color="black"/>
-                        <TextInput
-                            placeholder="Reps"
-                            keyboardType="numeric"
-                            value={set.reps.toString()}
-                            // style={styles.input}
-                            onChangeText={(text) => updateSet(item.id, index, 'reps', text)}
-                            style={styles.input}
-                        />
-                    </View>
+                    <SetComponent/>
                 ))}
                 </View>
 

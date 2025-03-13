@@ -13,7 +13,7 @@ const SearchExercise = () => {
   );
   
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.innerContainer}>
         {/* Header */}
         <Text style={styles.headerText}>Exercises</Text>
@@ -27,7 +27,6 @@ const SearchExercise = () => {
             style={styles.searchInput}
           />
         </View>
-
         {/* Exercise List */}
         <FlatList
           data={searchResults}
@@ -36,7 +35,7 @@ const SearchExercise = () => {
           ListEmptyComponent={<Text style={styles.emptyText}>No exercises found</Text>}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
