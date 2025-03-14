@@ -1,7 +1,7 @@
-import { View,Text, FlatList,TextInput, StyleSheet } from "react-native";
+import { View,Text, FlatList,TextInput, StyleSheet, Modal, TouchableOpacity } from "react-native";
 import React, {useState} from "react";
 import exerciseData from "../../assets/data/exercises.json";
-import ExerciseItem from "../components/exerciseItem";
+import ExerciseItem from "./exerciseItem";
 import { useRouter } from "expo-router";
 
 interface Exercise {
@@ -11,8 +11,14 @@ interface Exercise {
   equipment: string;
 }
 
-const ExerciseLibrary = () => {
-  const router = useRouter();
+interface ExerciseLibraryProps {
+  isVisible: boolean;
+  onClose: () => void;
+  onSelectExercise: (exercise: Exercise) => void;
+}
+
+const ExerciseLibrary = ({ isVisible, onClose, onSelectExercise }: ExerciseLibraryProps) => {
+  // const router = useRouter();
   const exercises = exerciseData;
 
   const [searchInput, setSearchInput] = useState<string>('');
@@ -21,72 +27,98 @@ const ExerciseLibrary = () => {
     exercise.name.toLowerCase().includes(searchInput.toLowerCase())
   );
   
-  const handleSelectExercise = (exercise: Exercise): void => {
-    router.push({
-      pathname: '/workout',
-      params: { selectedExercise: JSON.stringify(exercise) },
-    });
-  }
+  // const handleSelectExercise = (exercise: Exercise): void => {
+  //   router.push({
+  //     pathname: '/workout',
+  //     params: { selectedExercise: JSON.stringify(exercise) },
+  //   });
+  // }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.innerContainer}>
-        {/* Header */}
-        <Text style={styles.headerText}>Exercises</Text>
-        
-        {/* Search Bar */}
-        <View style={styles.searchBar}>
+    <Modal visible={isVisible} animationType="slide" transparent={true}>
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          {/* Close Button */}
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+
+          {/* Header */}
+          <Text style={styles.headerText}>Select an Exercise</Text>
+
+          {/* Search Bar */}
           <TextInput
             placeholder="Search Exercises"
             value={searchInput}
             onChangeText={setSearchInput}
             style={styles.searchInput}
           />
+
+          {/* Exercise List */}
+          <FlatList
+            data={searchResults}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.exerciseItem}
+                onPress={() => onSelectExercise(item)}
+              >
+                <Text>{item.name}</Text>
+              </TouchableOpacity>
+            )}
+            keyExtractor={(item) => item.id.toString()}
+            ListEmptyComponent={<Text style={styles.emptyText}>No exercises found</Text>}
+          />
         </View>
-        {/* Exercise List */}
-        <FlatList
-          data={searchResults}
-          renderItem={({ item }) => <ExerciseItem exercise={item} onSelect={() => handleSelectExercise(item)} />}
-          keyExtractor={(item) => item.id.toString()}
-          ListEmptyComponent={<Text style={styles.emptyText}>No exercises found</Text>}
-        />
       </View>
-    </View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  modalContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  innerContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
+  modalContent: {
+    width: "90%",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+  },
+  closeButton: {
+    alignSelf: "flex-end",
+    padding: 10,
+  },
+  closeButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "red",
   },
   headerText: {
-    textAlign: 'center',
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
-    backgroundColor: '#f0f0f0',
-    padding: 12,
-    borderRadius: 25,
+    textAlign: "center",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
   },
   searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
+    width: "100%",
+    padding: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  exerciseItem: {
+    padding: 12,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 6,
+    marginVertical: 5,
   },
   emptyText: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 18,
-    color: '#888',
+    color: "#888",
     marginTop: 20,
   },
 });

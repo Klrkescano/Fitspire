@@ -11,36 +11,50 @@ interface Exercise {
     equipment: string;
 }
 
+
+// TODO: Change exercise library to modal instead of page
 const Workout: React.FC = () => {
-    const router = useRouter();
+    // const router = useRouter();
 
+    const [modalVisible, setModalVisible] = useState(false);
     const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
-    const searchParams = useSearchParams();
 
-    useEffect(() => {
-      const selectedExercise = searchParams.get("selectedExercise");
-      if (selectedExercise && typeof selectedExercise === "string") {
-        const exercise: Exercise = JSON.parse(selectedExercise);
+    const handleSelectExercise = (exercise: Exercise): void => {
         setSelectedExercises((prevExercises) => [...prevExercises, exercise]);
-        router.push("/workout");
-      }
-    }, [searchParams, router]);
+        setModalVisible(false);
+    };
+
+    // const searchParams = useSearchParams();
+
+    // useEffect(() => {
+    //   const selectedExercise = searchParams.get("selectedExercise");
+    //   if (selectedExercise && typeof selectedExercise === "string") {
+    //     const exercise: Exercise = JSON.parse(selectedExercise);
+    //     setSelectedExercises((prevExercises) => [...prevExercises, exercise]);
+    //     router.push("/workout");
+    //   }
+    // }, [searchParams, router]);
 
     return (
       <SafeAreaView style={styles.container}>
           <Text style={styles.header}>Workout</Text>
-          <Button title="Add Exercise" onPress={() => router.push('/components/exerciseLibrary')} />
+          <Button title="Add Exercise" onPress={() => setModalVisible(true)} />
 
           <FlatList
-        data={selectedExercises}
-        renderItem={({ item }) => (
-          <View style={styles.exerciseItem}>
-            <Text>{item.name}</Text>
-          </View>
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        ListEmptyComponent={<Text>No exercises added</Text>}
-      />
+          data={selectedExercises}
+          renderItem={({ item }) => (
+            <View style={styles.exerciseItem}>
+              <Text>{item.name}</Text>
+            </View>
+            )}
+          keyExtractor={(item) => item.id.toString()}
+          ListEmptyComponent={<Text>No exercises added</Text>}
+          />
+          <ExerciseLibrary
+            isVisible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            onSelectExercise={handleSelectExercise}
+          />
     </SafeAreaView>
   );
 };
