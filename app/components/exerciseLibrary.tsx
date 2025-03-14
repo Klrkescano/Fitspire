@@ -1,15 +1,7 @@
 import { View,Text, FlatList,TextInput, StyleSheet, Modal, TouchableOpacity } from "react-native";
 import React, {useState} from "react";
 import exerciseData from "../../assets/data/exercises.json";
-import ExerciseItem from "./exerciseItem";
-import { useRouter } from "expo-router";
-
-interface Exercise {
-  id: number;
-  name: string;
-  muscle: string;
-  equipment: string;
-}
+import { Exercise } from "../types/types";
 
 interface ExerciseLibraryProps {
   isVisible: boolean;
@@ -17,8 +9,9 @@ interface ExerciseLibraryProps {
   onSelectExercise: (exercise: Exercise) => void;
 }
 
+const { width,height } = Dimensions.get('window');
+
 const ExerciseLibrary = ({ isVisible, onClose, onSelectExercise }: ExerciseLibraryProps) => {
-  // const router = useRouter();
   const exercises = exerciseData;
 
   const [searchInput, setSearchInput] = useState<string>('');
@@ -26,13 +19,6 @@ const ExerciseLibrary = ({ isVisible, onClose, onSelectExercise }: ExerciseLibra
   const searchResults = exercises.filter((exercise) =>
     exercise.name.toLowerCase().includes(searchInput.toLowerCase())
   );
-  
-  // const handleSelectExercise = (exercise: Exercise): void => {
-  //   router.push({
-  //     pathname: '/workout',
-  //     params: { selectedExercise: JSON.stringify(exercise) },
-  //   });
-  // }
 
   return (
     <Modal visible={isVisible} animationType="slide" transparent={true}>
