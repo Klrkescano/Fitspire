@@ -1,4 +1,4 @@
-import { View,Text, FlatList,TextInput, StyleSheet, Modal, TouchableOpacity } from "react-native";
+import { View,Text, FlatList,TextInput, StyleSheet, Modal, TouchableOpacity, Dimensions } from "react-native";
 import React, {useState} from "react";
 import exerciseData from "../../assets/data/exercises.json";
 import { Exercise } from "../types/types";

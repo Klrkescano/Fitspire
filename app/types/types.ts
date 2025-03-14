@@ -9,6 +9,6 @@ export interface Exercise {
 
 export interface Set {
     id: number;
-    weight: number;
-    reps: number;
+    weight: number | null;
+    reps: number | null;
 }

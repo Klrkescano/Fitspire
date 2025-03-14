@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, FlatList, Text, StyleSheet, Dimensions, Touchable, TouchableOpacity } from 'react-native';
+import { View, TextInput, Button, FlatList, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { Set } from '../types/types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 

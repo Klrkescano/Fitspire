@@ -2,13 +2,14 @@ import React, {useState} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Dimensions} from 'react-native';
 import { Exercise,Set } from '../types/types';
 import SetComponent from './setComponent';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 interface ExerciseItemProps {
     exercise: Exercise;
-    onSelect: () => void;
+    onDelete: (exerciseId: number) => void;
 }
 
-const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, onSelect }) => {
+const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, onDelete }) => {
   const [ sets, setSets ] = useState<Set[]>(exercise.sets || []);
   
   const addSet = (exerciseId: number) => {
@@ -40,7 +41,8 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, onSelect }) => {
   }
 
   return (
-      <TouchableOpacity style={styles.card}>
+    <View style={styles.card}>
+      <TouchableOpacity>
         <View style={styles.cardContent}>
           <View style={styles.textContainer}>
             <Text style={styles.title}>{exercise.name}</Text>
@@ -51,6 +53,10 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, onSelect }) => {
           <SetComponent sets={sets} exerciseId={exercise.id} addSet={addSet} updateSet={updateSet} deleteSet={deleteSet} />
         </View>
       </TouchableOpacity>
+      <TouchableOpacity onPress={() => onDelete(exercise.id)} style={{ position: 'absolute', top: 10, right: 10 }}>
+        <Icon name="times" size={24} color="black" />
+      </TouchableOpacity>
+    </View>
     );
   };
 

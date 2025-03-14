@@ -16,6 +16,13 @@ const Workout: React.FC = () => {
         setModalVisible(false);
     };
 
+    const handleDeleteExercise = (exerciseId: number): void => {
+        setSelectedExercises((prevExercises) =>
+          prevExercises.filter((exercise) => exercise.id !== exerciseId)
+        );
+    };
+    
+
     return (
       <SafeAreaView style={styles.container}>
           <Text style={styles.header}>Workout</Text>
@@ -27,7 +34,7 @@ const Workout: React.FC = () => {
               renderItem={({ item }) => (
                 <ExerciseItem
                   exercise={item}
-                  onSelect={() => console.log("Exercise Selected")}
+                  onDelete={handleDeleteExercise}
                 />
                 )}
               keyExtractor={(item) => item.id.toString()}
