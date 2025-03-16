@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, FlatList, Button, Dimensions, StyleSheet } from 'react-native';
-import exerciseData from '../../assets/data/exercises.json';
+import exerciseData from '../../assets/data/exercises.json'; // Importing exercise data from JSON file
+import Icon from 'react-native-vector-icons/FontAwesome'; // Importing FontAwesome icons
 
-import Icon  from 'react-native-vector-icons/FontAwesome';
+// Getting device width and height
+const { width, height } = Dimensions.get('window');
 
-const { width,height } = Dimensions.get('window');
-
+// Interface for a Set (weight and reps for an exercise)
 interface Set {
     id: number;
     weight: number;
     reps: number;
 }
 
+// Interface for an Exercise
 interface Exercise {
     id: number;
     name: string;
@@ -22,6 +24,7 @@ interface Exercise {
 }
 
 const ExerciseTile = () => {
+    // State to store the list of exercises, initializing from JSON data
     const [exercises, setExercises] = useState<Exercise[]>(() => 
         exerciseData.map(exercise => ({
             id: exercise.id,
@@ -29,10 +32,11 @@ const ExerciseTile = () => {
             muscle: exercise.muscle,
             equipment: exercise.equipment,
             instruction: exercise.instruction,
-            sets: [],
+            sets: [], // Initializing with empty sets
         }))
     );
 
+    // Function to update a set's weight or reps
     const updateSet = (exerciseId: number, setIndex: number, key: string, value: string) => {
         const newExercises = exercises.map((exercise) => {
             if (exercise.id === exerciseId) {
@@ -42,7 +46,7 @@ const ExerciseTile = () => {
                         if (index === setIndex) {
                             return {
                                 ...set,
-                                [key]: value,
+                                [key]: value, // Updating either weight or reps
                             };
                         }
                         return set;
@@ -54,6 +58,7 @@ const ExerciseTile = () => {
         setExercises(newExercises);
     };
 
+    // Function to add a new set to an exercise
     const addSet = (exerciseId: number) => {
         const newExercises = exercises.map((exercise) => {
             if (exercise.id === exerciseId) {
@@ -62,7 +67,7 @@ const ExerciseTile = () => {
                     sets: [
                         ...exercise.sets,
                         {
-                            id: exercise.sets.length + 1,
+                            id: exercise.sets.length + 1, // Assigning new ID
                             weight: 0,
                             reps: 0,
                         },
@@ -74,12 +79,13 @@ const ExerciseTile = () => {
         setExercises(newExercises);
     };
 
+    // Function to delete the last set of an exercise
     const deleteSet = (exerciseId: number) => {
         const newExercises = exercises.map((exercise) => {
             if (exercise.id === exerciseId) {
                 return {
                     ...exercise,
-                    sets: exercise.sets.slice(0, -1),
+                    sets: exercise.sets.slice(0, -1), // Removing last set
                 };
             }
             return exercise;
@@ -87,45 +93,42 @@ const ExerciseTile = () => {
         setExercises(newExercises);
     };
 
-    const renderExercise = ({ item } : {item: Exercise}) => {
-
+    // Function to render each exercise card
+    const renderExercise = ({ item }: { item: Exercise }) => {
         return (
             <View style={styles.cardContainer}>
-                {/* Exercise Name Header */}
+                {/* Displaying exercise details */}
                 <Text style={styles.exerciseName}>{item.name}</Text>
                 <Text style={styles.detailText}>Muscle: {item.muscle}</Text>
                 <Text style={styles.detailText}>Equipment: {item.equipment}</Text>
                 <Text style={styles.detailText}>Instructions: {item.instruction}</Text>   
 
-                {/* Sets */}
+                {/* Displaying sets for the exercise */}
                 <View style={styles.setContainer}>
-                {item.sets.map((set, index) => (
-                    <View key={index} style={styles.setRow}>
-                        <Text>Set {index + 1}:</Text>
-                        <TextInput
-                            placeholder="Weight"
-                            keyboardType="numeric"
-                            value={set.weight.toString()}
-                            // style={styles.input}
-                            onChangeText = {(text) => updateSet(item.id, index, 'weight', text)}
-                            style={styles.input}
-                        />
-                        <Text>lbs</Text>
-                        <Icon name="times" size={20} color="black"/>
-                        <TextInput
-                            placeholder="Reps"
-                            keyboardType="numeric"
-                            value={set.reps.toString()}
-                            // style={styles.input}
-                            onChangeText={(text) => updateSet(item.id, index, 'reps', text)}
-                            style={styles.input}
-                        />
-                    </View>
-                ))}
+                    {item.sets.map((set, index) => (
+                        <View key={index} style={styles.setRow}>
+                            <Text>Set {index + 1}:</Text>
+                            <TextInput
+                                placeholder="Weight"
+                                keyboardType="numeric"
+                                value={set.weight.toString()}
+                                onChangeText={(text) => updateSet(item.id, index, 'weight', text)}
+                                style={styles.input}
+                            />
+                            <Text>lbs</Text>
+                            <Icon name="times" size={20} color="black" />
+                            <TextInput
+                                placeholder="Reps"
+                                keyboardType="numeric"
+                                value={set.reps.toString()}
+                                onChangeText={(text) => updateSet(item.id, index, 'reps', text)}
+                                style={styles.input}
+                            />
+                        </View>
+                    ))}
                 </View>
 
-                {/* Add/Delete Set Buttons */}
-
+                {/* Buttons to add or delete sets */}
                 <View style={styles.buttonContainer}>
                     <Button title="Add Set" onPress={() => addSet(item.id)} />
                     <Button title="Delete Set" onPress={() => deleteSet(item.id)} />
@@ -136,6 +139,7 @@ const ExerciseTile = () => {
 
     return (
         <View>
+            {/* FlatList to display exercises horizontally */}
             <FlatList
                 data={exercises}
                 keyExtractor={(item) => item.id.toString()}
@@ -143,9 +147,9 @@ const ExerciseTile = () => {
                 horizontal={true}
                 pagingEnabled={true}
                 showsHorizontalScrollIndicator={false}
-                snapToAlignment='center'
+                snapToAlignment="center"
                 snapToInterval={width}
-                decelerationRate='fast'
+                decelerationRate="fast"
                 initialNumToRender={1}
                 maxToRenderPerBatch={2}
                 windowSize={3}
@@ -154,16 +158,15 @@ const ExerciseTile = () => {
                     length: width,
                     offset: width * index,
                     index,
-                })
-                }
+                })}
             />
         </View>
     );
-}
+};
 
 export default ExerciseTile;
 
-
+// Styles for the UI components
 const styles = StyleSheet.create({
     cardContainer: {
         width: width * 0.9,
@@ -178,7 +181,7 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         elevation: 5,
     }, 
-    exerciseName:{
+    exerciseName: {
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 10,
