@@ -3,12 +3,13 @@ import React, { useState } from "react";
 import ExerciseLibrary from "../components/exerciseLibrary";
 import ExerciseItem from "../components/exerciseItem";
 import { Exercise } from "../types/types";
-
+import RestTimer from "../components/restTimer";
 const { width,height } = Dimensions.get('window');
 
 const Workout: React.FC = () => {
 
     const [modalVisible, setModalVisible] = useState(false);
+    const [restTimerVisible, setRestTimerVisible] = useState(false);
     const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
 
     const handleSelectExercise = (exercise: Exercise): void => {
@@ -27,6 +28,7 @@ const Workout: React.FC = () => {
       <SafeAreaView style={styles.container}>
           <Text style={styles.header}>Workout</Text>
           <Button title="Add Exercise" onPress={() => setModalVisible(true)} />
+          <Button title="Rest Timer" onPress={() => setRestTimerVisible(true)} />
           
           <View style={styles.listContainer}>
             <FlatList
@@ -61,6 +63,10 @@ const Workout: React.FC = () => {
             isVisible={modalVisible}
             onClose={() => setModalVisible(false)}
             onSelectExercise={handleSelectExercise}
+          />
+          <RestTimer
+            isVisible={restTimerVisible}
+            onClose={() => setRestTimerVisible(false)}
           />
     </SafeAreaView>
   );

@@ -11,6 +11,7 @@ interface ExerciseItemProps {
 
 const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, onDelete }) => {
   const [ sets, setSets ] = useState<Set[]>(exercise.sets || []);
+
   
   const addSet = (exerciseId: number) => {
     const newSet: Set = {
