@@ -125,7 +125,7 @@ const TabsLayout = () => {
             }}
           />
           <Tabs.Screen
-            name="workout"
+            name="workoutScreen"
             options={{
               title: 'Workout',
               headerShown: false,

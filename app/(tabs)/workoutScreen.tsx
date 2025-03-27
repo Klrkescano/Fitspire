@@ -2,37 +2,70 @@ import { SafeAreaView, Text, Button,  StyleSheet,View,FlatList, Dimensions } fro
 import React, { useState } from "react";
 import ExerciseLibrary from "../components/exerciseLibrary";
 import ExerciseItem from "../components/exerciseItem";
-import { Exercise } from "../types/types";
+import { Exercise, Workout } from "../types/types";
 import RestTimer from "../components/restTimer";
 const { width,height } = Dimensions.get('window');
 
-const Workout: React.FC = () => {
+
+// Dummy data for workout object
+const mockWorkout: Workout = {
+  id: Date.now().toString(),
+  name: "Premade Full Body Workout",
+  exercises: [
+      {
+          id: 1,
+          name: "Squat",
+          muscle: "Legs",
+          equipment: "Barbell",
+          instruction: "Stand with feet shoulder-width apart...",
+          sets: [],
+      },
+      {
+          id: 2,
+          name: "Bench Press",
+          muscle: "Chest",
+          equipment: "Barbell",
+          instruction: "Lie flat on the bench, grip the bar...",
+          sets:[],
+      },
+  ],
+};
+
+const WorkoutScreen: React.FC = () => {
 
     const [modalVisible, setModalVisible] = useState(false);
     const [restTimerVisible, setRestTimerVisible] = useState(false);
-    const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
+
+    const [workout, setWorkout] = useState<Workout>(mockWorkout);
 
     const handleSelectExercise = (exercise: Exercise): void => {
-        setSelectedExercises((prevExercises) => [...prevExercises, exercise]);
+        setWorkout((prevWorkout) => ({
+          ...prevWorkout,
+          exercises: [...prevWorkout.exercises,{...exercise, sets: []}],
+        }));
         setModalVisible(false);
     };
 
     const handleDeleteExercise = (exerciseId: number): void => {
-        setSelectedExercises((prevExercises) =>
-          prevExercises.filter((exercise) => exercise.id !== exerciseId)
+        setWorkout((prevWorkout) => ({
+          ...prevWorkout,
+          exercises: prevWorkout.exercises.filter(
+            (exercise) => exercise.id !== exerciseId
+          ),
+        })
         );
     };
     
 
     return (
       <SafeAreaView style={styles.container}>
-          <Text style={styles.header}>Workout</Text>
+          <Text style={styles.header}>{workout.name}</Text>
           <Button title="Add Exercise" onPress={() => setModalVisible(true)} />
           <Button title="Rest Timer" onPress={() => setRestTimerVisible(true)} />
           
           <View style={styles.listContainer}>
             <FlatList
-              data={selectedExercises}
+              data={workout.exercises}
               renderItem={({ item }) => (
                 <ExerciseItem
                   exercise={item}
@@ -98,4 +131,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default Workout;
+export default WorkoutScreen
