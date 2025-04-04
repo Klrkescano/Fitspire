@@ -1,7 +1,8 @@
 import { View,Text, FlatList,TextInput, StyleSheet, Modal, TouchableOpacity, Dimensions } from "react-native";
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import exerciseData from "../../assets/data/exercises.json";
 import { Exercise } from "../types/types";
+import { getExercises } from "../_utils/databaseHandler";
 
 interface ExerciseLibraryProps {
   isVisible: boolean;
@@ -12,13 +13,28 @@ interface ExerciseLibraryProps {
 const { width,height } = Dimensions.get('window');
 
 const ExerciseLibrary = ({ isVisible, onClose, onSelectExercise }: ExerciseLibraryProps) => {
-  const exercises = exerciseData;
-
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [searchInput, setSearchInput] = useState<string>('');
 
   const searchResults = exercises.filter((exercise) =>
     exercise.name.toLowerCase().includes(searchInput.toLowerCase())
   );
+
+    // Fetch exercises from the database when modal is visible
+    useEffect(() => {
+      const fetchExercises = async () => {
+        try {
+          const exercisesFromDb = await getExercises(); // Fetch from DB
+          setExercises(exercisesFromDb);
+        } catch (error) {
+          console.error("Error fetching exercises:", error);
+        }
+      };
+  
+      if (isVisible) {
+        fetchExercises();
+      }
+    }, [isVisible]); // Re-fetch data when modal opens
 
   return (
     <Modal visible={isVisible} animationType="slide" transparent={true}>

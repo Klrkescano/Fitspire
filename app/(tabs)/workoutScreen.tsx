@@ -1,7 +1,7 @@
 import { SafeAreaView, Text, Button,  StyleSheet,View,FlatList, Dimensions } from "react-native";
 import React, { useState } from "react";
 import ExerciseLibrary from "../components/exerciseLibrary";
-import ExerciseItem from "../components/exerciseItem";
+import WorkoutComponent from "../components/workoutComponent";
 import { Exercise, Workout } from "../types/types";
 import RestTimer from "../components/restTimer";
 const { width,height } = Dimensions.get('window');
@@ -15,18 +15,24 @@ const mockWorkout: Workout = {
       {
           id: 1,
           name: "Squat",
-          muscle: "Legs",
+          muscle_group: "Legs",
           equipment: "Barbell",
           instruction: "Stand with feet shoulder-width apart...",
-          sets: [],
+          sets: [
+              { id: 1, weight: 100, reps: 12 },
+              { id: 2, weight: 110, reps: 10 },
+          ],
       },
       {
           id: 2,
           name: "Bench Press",
-          muscle: "Chest",
+          muscle_group: "Chest",
           equipment: "Barbell",
           instruction: "Lie flat on the bench, grip the bar...",
-          sets:[],
+          sets: [
+              { id: 1, weight: 80, reps: 8 },
+              { id: 2, weight: 85, reps: 6 },
+          ],
       },
   ],
 };
@@ -62,36 +68,11 @@ const WorkoutScreen: React.FC = () => {
           <Text style={styles.header}>{workout.name}</Text>
           <Button title="Add Exercise" onPress={() => setModalVisible(true)} />
           <Button title="Rest Timer" onPress={() => setRestTimerVisible(true)} />
-          
-          <View style={styles.listContainer}>
-            <FlatList
-              data={workout.exercises}
-              renderItem={({ item }) => (
-                <ExerciseItem
-                  exercise={item}
-                  onDelete={handleDeleteExercise}
-                />
-                )}
-              keyExtractor={(item) => item.id.toString()}
-              ListEmptyComponent={<Text>No exercises added</Text>}
-              horizontal={true}
-              pagingEnabled={true}
-              showsHorizontalScrollIndicator={false}
-              snapToAlignment='center'
-              snapToInterval={width * 0.85}
-              decelerationRate='fast'
-              initialNumToRender={1}
-              maxToRenderPerBatch={2}
-              windowSize={3}
-              removeClippedSubviews={true}
-              getItemLayout={(data, index) => ({
-                  length: width * 0.85,
-                  offset: (width * 0.85) * index,
-                  index,
-              })}
-
-            />
-          </View>
+          <WorkoutComponent
+            workout={workout}
+            onAddExercise={() => setModalVisible(true)}
+            onDeleteExercise={handleDeleteExercise}
+          />
           <ExerciseLibrary
             isVisible={modalVisible}
             onClose={() => setModalVisible(false)}

@@ -17,6 +17,8 @@ import {
   sendEmailVerification,
 } from 'firebase/auth';
 
+//TODO ADD BACK BUTTON FROM SIGNUP TO GO BACK TO LOGIN PAGE
+
 const SignUp = () => {
   const [form, setForm] = useState({
     email: '',

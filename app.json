@@ -32,10 +32,10 @@
     },
     "plugins": [
       "expo-router",
+      "expo-sqlite",
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "@react-native-google-signin/google-signin",
-
       [
         "expo-build-properties",
         {
@@ -44,7 +44,6 @@
           }
         }
       ],
-
       [
         "expo-splash-screen",
         {
@@ -70,11 +69,14 @@
       [
         "expo-build-properties",
         {
-          "ios": { "useFrameworks": "static" }
+          "ios": {
+            "useFrameworks": "static"
+          }
         }
       ],
       "@react-native-firebase/app",
       "@react-native-firebase/auth"
+
     ],
     "experiments": {
       "typedRoutes": true

@@ -48,7 +48,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, onDelete }) => {
           <View style={styles.textContainer}>
             <Text style={styles.title}>{exercise.name}</Text>
             <Text style={styles.subtitle}>
-              {exercise.muscle} | {exercise.equipment}
+              {exercise.muscle_group} | {exercise.equipment}
             </Text>
           </View>
           <SetComponent sets={sets} exerciseId={exercise.id} addSet={addSet} updateSet={updateSet} deleteSet={deleteSet} />
