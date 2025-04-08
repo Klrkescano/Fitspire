@@ -2,7 +2,7 @@ import { SafeAreaView, Text, Button,  StyleSheet,View,FlatList, Dimensions } fro
 import React, { useState } from "react";
 import ExerciseLibrary from "../components/exerciseLibrary";
 import WorkoutComponent from "../components/workoutComponent";
-import { Exercise, Workout } from "../types/types";
+import { Exercise, Workout } from "../../.types/types";
 import RestTimer from "../components/restTimer";
 const { width,height } = Dimensions.get('window');
 

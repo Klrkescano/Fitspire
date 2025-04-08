@@ -1,33 +1,36 @@
 import React, {useState} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Dimensions} from 'react-native';
-import { Exercise,Set } from '../types/types';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions} from 'react-native';
+import { WorkoutExercise,Set } from '../../.types/types';
 import SetComponent from './setComponent';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useSQLiteContext } from 'expo-sqlite';
 
 interface ExerciseItemProps {
-    exercise: Exercise;
-    onDelete: (exerciseId: number) => void;
+    ex: WorkoutExercise;
+    onDelete: (exercise_id: number) => void;
 }
 
-const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, onDelete }) => {
-  const [ sets, setSets ] = useState<Set[]>(exercise.sets || []);
+const ExerciseItem: React.FC<ExerciseItemProps> = ({ ex, onDelete }) => {
+  const [ sets, setSets ] = useState<Set[]>(ex.sets || []);
 
   
-  const addSet = (exerciseId: number) => {
+  const addSet = (workout_exercise_id: number) => {
     const newSet: Set = {
-      id: sets.length + 1,
+      set_id: sets.length + 1,
       weight: 0,
       reps: 0,
+      workout_exercise_id: 0,
+      set_number: 0
     };
 
     setSets([...sets, newSet]);
   }
 
-  const deleteSet = (exerciseId: number, setIndex: number) => {
+  const deleteSet = (workout_exercise_id: number, setIndex: number) => {
     setSets(sets.filter((_, index) => index !== setIndex));
   }
 
-  const updateSet = (exerciseId: number, setIndex: number, key: keyof Set, value: string) => {
+  const updateSet = (workout_exercise_id: number, setIndex: number, key: keyof Set, value: string) => {
     const newSets = sets.map((sets, index) => {
       if (index === setIndex) {
         return {
@@ -46,15 +49,15 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, onDelete }) => {
       <TouchableOpacity>
         <View style={styles.cardContent}>
           <View style={styles.textContainer}>
-            <Text style={styles.title}>{exercise.name}</Text>
+            <Text style={styles.title}>{ex.exercise_name}</Text>
             <Text style={styles.subtitle}>
-              {exercise.muscle_group} | {exercise.equipment}
+              {ex.muscle_group} | {ex.equipment}
             </Text>
           </View>
-          <SetComponent sets={sets} exerciseId={exercise.id} addSet={addSet} updateSet={updateSet} deleteSet={deleteSet} />
+          <SetComponent sets={sets} exerciseId={ex.exercise_id} addSet={addSet} updateSet={updateSet} deleteSet={deleteSet} />
         </View>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => onDelete(exercise.id)} style={{ position: 'absolute', top: 10, right: 10 }}>
+      <TouchableOpacity onPress={() => onDelete(ex.exercise_id)} style={{ position: 'absolute', top: 10, right: 10 }}>
         <Icon name="times" size={24} color="black" />
       </TouchableOpacity>
     </View>

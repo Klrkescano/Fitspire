@@ -1,8 +1,8 @@
 import { View,Text, FlatList,TextInput, StyleSheet, Modal, TouchableOpacity, Dimensions } from "react-native";
 import React, {useState, useEffect} from "react";
-import exerciseData from "../../assets/data/exercises.json";
-import { Exercise } from "../types/types";
-import { getExercises } from "../_utils/databaseHandler";
+import { Exercise } from "../../.types/types";
+import { getAllExercises } from "../../.utils/databaseSetup";
+import { useSQLiteContext } from "expo-sqlite";
 
 interface ExerciseLibraryProps {
   isVisible: boolean;
@@ -10,32 +10,30 @@ interface ExerciseLibraryProps {
   onSelectExercise: (exercise: Exercise) => void;
 }
 
-const { width,height } = Dimensions.get('window');
-
 const ExerciseLibrary = ({ isVisible, onClose, onSelectExercise }: ExerciseLibraryProps) => {
+  const db = useSQLiteContext();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [searchInput, setSearchInput] = useState<string>('');
 
   const searchResults = exercises.filter((exercise) =>
-    exercise.name.toLowerCase().includes(searchInput.toLowerCase())
+    exercise.exercise_name.toLowerCase().includes(searchInput.toLowerCase())
   );
 
     // Fetch exercises from the database when modal is visible
     useEffect(() => {
       const fetchExercises = async () => {
         try {
-          const exercisesFromDb = await getExercises(); // Fetch from DB
-          setExercises(exercisesFromDb);
+          const fetchedExercises = await getAllExercises(db);
+          setExercises(fetchedExercises as Exercise[]);
         } catch (error) {
           console.error("Error fetching exercises:", error);
         }
       };
-  
       if (isVisible) {
         fetchExercises();
       }
-    }, [isVisible]); // Re-fetch data when modal opens
-
+    }, [isVisible]);
+    
   return (
     <Modal visible={isVisible} animationType="slide" transparent={true}>
       <View style={styles.modalContainer}>
@@ -64,10 +62,10 @@ const ExerciseLibrary = ({ isVisible, onClose, onSelectExercise }: ExerciseLibra
                 style={styles.exerciseItem}
                 onPress={() => onSelectExercise(item)}
               >
-                <Text>{item.name}</Text>
+                <Text>{item.exercise_name}</Text>
               </TouchableOpacity>
             )}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.exercise_id.toString()}
             ListEmptyComponent={<Text style={styles.emptyText}>No exercises found</Text>}
           />
         </View>

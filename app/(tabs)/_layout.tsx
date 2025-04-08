@@ -127,7 +127,7 @@ const TabsLayout = () => {
           <Tabs.Screen
             name="workoutScreen"
             options={{
-              title: 'Workout',
+              title: 'Workout Screen',
               headerShown: false,
               tabBarIcon: ({ focused }) => (
                 <Image
