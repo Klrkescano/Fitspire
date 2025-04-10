@@ -25,6 +25,8 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 
+import SaveWorkout from '../components/saveWorkout'
+
 type Stat = {
   key: string;
   Name: string;
@@ -311,6 +313,7 @@ const Profile: React.FC = () => {
             <View className="flex-row flex-wrap justify-between mt-4 ">
               <Text className="font-rubik text-lg">Lose 5kg in 2 months</Text>
             </View>
+            
             <View className="flex-row flex-wrap justify-between mt-10 ">
               {items.map((item, index) => (
                 <View
@@ -374,6 +377,7 @@ const Profile: React.FC = () => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+      
     </View>
   );
 };
