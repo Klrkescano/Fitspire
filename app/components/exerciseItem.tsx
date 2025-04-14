@@ -1,19 +1,17 @@
-import React, {useState} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions} from 'react-native';
-import { WorkoutExercise,Set } from '../../.types/types';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { WorkoutExercise, Set } from '../../.types/types';
 import SetComponent from './setComponent';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useSQLiteContext } from 'expo-sqlite';
 
 interface ExerciseItemProps {
-    ex: WorkoutExercise;
-    onDelete: (exercise_id: number) => void;
+  ex: WorkoutExercise;
+  onDelete: (exercise_id: number) => void;
 }
 
 const ExerciseItem: React.FC<ExerciseItemProps> = ({ ex, onDelete }) => {
-  const [ sets, setSets ] = useState<Set[]>(ex.sets || []);
+  const [sets, setSets] = useState<Set[]>(ex.sets || []);
 
-  
   const addSet = (workout_exercise_id: number) => {
     const newSet: Set = {
       set_id: sets.length + 1,
@@ -31,14 +29,14 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ ex, onDelete }) => {
   }
 
   const updateSet = (workout_exercise_id: number, setIndex: number, key: keyof Set, value: string) => {
-    const newSets = sets.map((sets, index) => {
+    const newSets = sets.map((set, index) => {
       if (index === setIndex) {
         return {
-          ...sets,
+          ...set,
           [key]: value,
         };
       }
-      return sets;
+      return set;
     });
 
     setSets(newSets);
@@ -46,64 +44,84 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ ex, onDelete }) => {
 
   return (
     <View style={styles.card}>
-      <TouchableOpacity>
-        <View style={styles.cardContent}>
-          <View style={styles.textContainer}>
-            <Text style={styles.title}>{ex.exercise_name}</Text>
-            <Text style={styles.subtitle}>
-              {ex.muscle_group} | {ex.equipment}
-            </Text>
+      <View style={styles.header}>
+        <View style={styles.textContainer}>
+          <Text style={styles.title}>{ex.exercise_name}</Text>
+          <View style={styles.tags}>
+            <Text style={styles.tag}>{ex.muscle_group}</Text>
+            <Text style={styles.tag}>{ex.equipment}</Text>
           </View>
-          <SetComponent sets={sets} exerciseId={ex.exercise_id} addSet={addSet} updateSet={updateSet} deleteSet={deleteSet} />
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => onDelete(ex.exercise_id)} style={{ position: 'absolute', top: 10, right: 10 }}>
-        <Icon name="times" size={24} color="black" />
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => onDelete(ex.workout_exercise_id)}
+          style={styles.deleteButton}
+        >
+        <Icon name="times" size={24} color="#E74C3C" />
+        </TouchableOpacity>
+      </View>
+        <SetComponent
+          sets={sets}
+          exerciseId={ex.exercise_id}
+          addSet={addSet}
+          updateSet={updateSet}
+          deleteSet={deleteSet}
+        />
     </View>
-    );
-  };
+  );
+};
 
-  const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-  const styles = StyleSheet.create({
-    card: {
-      width: width * 0.85,
-      height: height * 0.70,
-      backgroundColor: '#EEF4FF',
-      padding: 16,
-      marginVertical: 8,
-      marginHorizontal: 8,
-      borderRadius: 15,
-      flexDirection: 'column',
-      alignItems: 'stretch',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-      elevation: 4,
-      
-    },
-    cardContent: {
-      flexDirection: 'column',
-      alignItems: 'flex-start',
-      width: '100%',
-    },
-    textContainer: {
-      marginBottom: 10,
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: '#222',
-    },
-    subtitle: {
-      fontSize: 14,
-      color: '#555',
-      marginTop: 2,
-    }
-  });
-
+const styles = StyleSheet.create({
+  card: {
+    width: width * 0.85,
+    maxHeight: height * 0.6,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    marginVertical: 8,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  textContainer: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginBottom: 4,
+  },
+  tags: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  tag: {
+    fontSize: 12,
+    color: '#666',
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  deleteButton: {
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+  },
+});
 
 
 export default ExerciseItem;
