@@ -1,17 +1,30 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, FlatList, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { 
+  ScrollView,
+  View, 
+  TextInput, 
+  Button, 
+  FlatList, 
+  Text, 
+  StyleSheet, 
+  Dimensions, 
+  TouchableOpacity 
+} from 'react-native';
 import { Set } from '../../.types/types';
 import Icon from 'react-native-vector-icons/FontAwesome';
+
+const { width, height } = Dimensions.get('window');
 
 interface SetComponentProps {
   sets: Set[];
   exerciseId: number;
   updateSet: (exerciseId: number, setIndex: number, key: keyof Set, value: string) => void;
-  addSet: (exerciseId: number) => void;
   deleteSet: (exerciseId: number, setIndex: number) => void;
 }
 
-const SetComponent: React.FC<SetComponentProps> = ({ sets, exerciseId, addSet, updateSet, deleteSet}) => {
+// TODO: NEED to change add set button to be in the exercise item card component
+
+const SetComponent: React.FC<SetComponentProps> = ({ sets, exerciseId, updateSet, deleteSet}) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -21,6 +34,9 @@ const SetComponent: React.FC<SetComponentProps> = ({ sets, exerciseId, addSet, u
         <View style={{ width: 24 }}></View>
       </View>
       <FlatList
+        style={{ maxHeight: height * 0.4, paddingBottom: 16 }}
+        scrollEnabled={true}
+        showsVerticalScrollIndicator={true}
         data={sets}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
@@ -49,12 +65,6 @@ const SetComponent: React.FC<SetComponentProps> = ({ sets, exerciseId, addSet, u
           </View>
         )}
       />
-      <TouchableOpacity 
-        style={styles.addButton}
-        onPress={() => addSet(exerciseId)}
-      >
-        <Text style={styles.addButtonText}>+ Add Set</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -104,18 +114,6 @@ const styles = StyleSheet.create({
   deleteButton: {
     padding: 6,
     marginLeft: 4,
-  },
-  addButton: {
-    backgroundColor: '#007AFF',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  addButtonText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 14,
   },
 });
 

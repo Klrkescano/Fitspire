@@ -3,10 +3,9 @@
 
 // Interface for Workout Session object recorded by user.
 export interface Workout {
-    workout_id: string;
+    workout_id: number;
     workout_name: string;
     workout_date: string;
-    workout_duration: number;
     exercises: WorkoutExercise[];
 }
 

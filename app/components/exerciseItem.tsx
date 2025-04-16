@@ -59,13 +59,20 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ ex, onDelete }) => {
         <Icon name="times" size={24} color="#E74C3C" />
         </TouchableOpacity>
       </View>
+      <View style={styles.setsContainer}>
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => addSet(ex.workout_exercise_id)}
+        >
+          <Text style={styles.addButtonText}>+ Add Set</Text>
+        </TouchableOpacity>
         <SetComponent
           sets={sets}
           exerciseId={ex.exercise_id}
-          addSet={addSet}
           updateSet={updateSet}
           deleteSet={deleteSet}
         />
+      </View>
     </View>
   );
 };
@@ -75,7 +82,6 @@ const { width, height } = Dimensions.get('window');
 const styles = StyleSheet.create({
   card: {
     width: width * 0.85,
-    maxHeight: height * 0.6,
     backgroundColor: '#FFFFFF',
     padding: 16,
     marginVertical: 8,
@@ -120,6 +126,22 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 20,
     backgroundColor: 'rgba(255, 59, 48, 0.1)',
+  },
+  setsContainer: {
+    maxHeight: height * 0.4,
+    overflow: 'scroll',
+  },
+  addButton: {
+    backgroundColor: '#007AFF',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  addButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
 
