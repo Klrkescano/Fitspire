@@ -4,7 +4,6 @@ import { Exercise, WorkoutExercise } from '../.types/types';
 
 let dbInstance: SQLite.SQLiteDatabase;
 
-
 // Database initialization function
 // This function creates  the database and the tables.
 export const openDB = async () => {
@@ -96,7 +95,7 @@ openDB();
 
 
 //Function to check if the exercise table has the default exercises
-const checkIfExerciseExists = async (db: SQLite.SQLiteDatabase) => {
+export const checkIfExerciseExists = async (db: SQLite.SQLiteDatabase) => {
   try {
     // Check if the exercise table exists and has any entries
     const result = await db.getAllAsync('SELECT * FROM exercise');
@@ -110,7 +109,7 @@ const checkIfExerciseExists = async (db: SQLite.SQLiteDatabase) => {
 };
 
 // Function to insert default exercises into the exercise table
-const insertDefaultExercises = async (db: SQLite.SQLiteDatabase) => {
+export const insertDefaultExercises = async (db: SQLite.SQLiteDatabase) => {
   try {
     for (const exercise of exerciseData) {
       const { exercise_id, exercise_name, muscle_group, equipment, instructions } = exercise as Exercise;

@@ -81,7 +81,7 @@ const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   card: {
-    width: width * 0.85,
+    flex: 1,
     backgroundColor: '#FFFFFF',
     padding: 16,
     marginVertical: 8,

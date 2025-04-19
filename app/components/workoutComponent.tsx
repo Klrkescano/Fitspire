@@ -33,28 +33,42 @@ const Workout: React.FC<WorkoutProps> = ({ workout, onDeleteExercise }) => {
   
   //   fetchExercises();
   // }, [db, workout]);
-  
+
+
+  // Placeholder if there are no exercises in the workout
+  const emptyWorkout = () => {
+    return (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>No exercises added yet</Text>
+      <Text style={styles.emptySubtext}>Tap the + button to add exercises</Text>
+    </View>
+    )
+  }
+
+
+  // Todo: Add exercise number indicator to the exercise card to show which exercise it is in the workout
+  // Todo : Add instructions to the exercise card to show how to do the exercise
+  // Todo : Add option to switch between kg and lbs for weight
+  // Todo : Adjust styling for workout timer
   return (
     <View style={styles.container}>
       <FlatList
         data={exercises}
         renderItem={({ item }) => (
+        <View style={styles.exerciseCard}>
           <ExerciseItem ex={item} onDelete={onDeleteExercise} />
+        </View>
         )}
         keyExtractor={(item) => item.exercise_id.toString()}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No exercises added yet</Text>
-            <Text style={styles.emptySubtext}>Tap the + button to add exercises</Text>
-          </View>
+          emptyWorkout
         }
         horizontal={true}
-        pagingEnabled={true}
-        showsHorizontalScrollIndicator={false}
-        snapToAlignment="center"
-        snapToInterval={width * 0.9}
-        decelerationRate="fast"
-        contentContainerStyle={styles.listContent}
+        snapToAlignment="start"
+        decelerationRate={"fast"}
+        snapToInterval={width}
+        // showsHorizontalScrollIndicator={false}
+        
       />
     </View>
   );
@@ -63,21 +77,21 @@ const Workout: React.FC<WorkoutProps> = ({ workout, onDeleteExercise }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: '100%',
-    paddingTop: 16,
-    maxHeight: height * 0.7,
-  },
-  listContent: {
-    paddingHorizontal: (width * 0.1) / 2,
-  },
-  emptyContainer: {
-    width: width * 0.85,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginHorizontal: (width * 0.1) / 2,
+    paddingTop: 8,
+    paddingBottom: 10,
+  },
+  exerciseCard: {
+    flex: 1,
+    width: width,
+    paddingLeft: width * 0.05,
+    paddingRight: width * 0.05,
+    
+  },
+  emptyContainer: {
+    flex: 1,
+    width: width,
   },
   emptyText: {
     fontSize: 18,
