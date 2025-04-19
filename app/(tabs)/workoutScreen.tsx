@@ -75,6 +75,9 @@ const WorkoutScreen: React.FC = () => {
         onAddExercise={() => setModalVisible(true)}
         onDeleteExercise={handleDeleteExercise}
       />
+      <Text style={{ padding: 16, color: '#666', textAlign: 'center' }}>
+        Swipe left or right to view exercises.
+      </Text>
       </View>
 
       <ExerciseLibrary

@@ -33,6 +33,8 @@ const ExerciseLibrary = ({ isVisible, onClose, onSelectExercise }: ExerciseLibra
         fetchExercises();
       }
     }, [isVisible]);
+
+
     
   return (
     <Modal visible={isVisible} animationType="slide" transparent={true}>

@@ -51,6 +51,7 @@ const RestTimer: React.FC<RestTimerProps> = ({ isVisible, onClose }) => {
 
     return (
         <Modal visible={isVisible} animationType="slide" transparent={true}>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <View style={{ backgroundColor: 'white', padding: 20, borderRadius: 10, width: '80%', alignItems: 'center' }}>
                     
@@ -93,6 +94,7 @@ const RestTimer: React.FC<RestTimerProps> = ({ isVisible, onClose }) => {
                         <Button title="Reset" onPress={() => { setIsTimerRunning(false); setRemainingTime(60); }} />
                     </View>
                 </View>
+            </View>
             </View>
         </Modal>
     );
