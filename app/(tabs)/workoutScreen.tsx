@@ -1,10 +1,10 @@
 import { SafeAreaView, Text, TouchableOpacity, StyleSheet, View, Dimensions } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import React, { useState } from "react";
-import ExerciseLibrary from "../components/exerciseLibrary";
-import WorkoutComponent from "../components/workoutComponent";
+import ExerciseLibrary from "../components/ExerciseLibrary";
+import WorkoutComponent from "../components/WorkoutComponent";
 import { Workout, WorkoutExercise, Exercise } from "../../.types/types";
-import RestTimer from "../components/restTimer";
+import RestTimer from "../components/RestTimer";
 const { width, height } = Dimensions.get('window');
 
 const WorkoutScreen: React.FC = () => {
@@ -68,6 +68,13 @@ const WorkoutScreen: React.FC = () => {
           <Icon name="clock-o" size={18} color="#007AFF" />
           <Text style={styles.buttonText}>Rest Timer</Text>
         </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.button}
+          onPress={() => console.log("Save Workout")}
+        >
+          <Icon name="save" size={18} color="#007AFF" />
+          <Text style={styles.buttonText}>Save Workout</Text>
+        </TouchableOpacity>
       </View>
       <View style={styles.workoutContainer}>
       <WorkoutComponent
@@ -124,7 +131,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
