@@ -3,52 +3,66 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import React, { useState } from "react";
 import ExerciseLibrary from "../components/ExerciseLibrary";
 import WorkoutComponent from "../components/WorkoutComponent";
-import { Workout, WorkoutExercise, Exercise } from "../../.types/types";
+import { Workout, Exercise,WorkoutExercise} from "../../.types/types";
 import RestTimer from "../components/RestTimer";
+import SaveForm from "../components/SaveForm";
 const { width, height } = Dimensions.get('window');
+import { useSQLiteContext } from "expo-sqlite";
 
 const WorkoutScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [restTimerVisible, setRestTimerVisible] = useState(false);
-
-  const [workout, setWorkout] = useState<Workout>({
-    workout_id: 1,
-    workout_name: "My Workout",
+  const [saveFormVisible, setSaveFromVisible] = useState(false);
+  
+  const [workout, setWorkout] = useState<Omit<Workout, 'workout_id'> & { workout_id?: number}>({
+    workout_name: "",
     workout_date: new Date().toISOString(),
     exercises: [],
   });
 
   const handleSelectExercise = (exercise: Exercise): void => {
-    setWorkout((prevWorkout) => ({
-      ...prevWorkout,
-      exercises: [
-        ...prevWorkout.exercises,
-        {
-          workout_exercise_id: prevWorkout.exercises.length + 1,
-          workout_id: prevWorkout.workout_id,
-          order_in_workout: prevWorkout.exercises.length + 1,
-          exercise_info: exercise,
-          sets: [],
-          ...exercise,
-        },
-      ],
-    }));
+    setWorkout(prev => {
+      // 1) Calculate the next index/order
+      const nextIndex = prev.exercises.length + 1;
+  
+      // 2) Build a WorkoutExercise object
+      const newWorkoutExercise: WorkoutExercise = {
+
+        //WorkoutExercise object
+        workout_exercise_id: nextIndex,
+        workout_id: prev.workout_id,
+        order_in_workout: nextIndex,
+        exercise_info: exercise,
+        sets: [],  
+        
+        //Workoutexercise extends exercise object, so we need the exercise object properties
+        exercise_id:   exercise.exercise_id,
+        exercise_name: exercise.exercise_name,
+        muscle_group:  exercise.muscle_group,
+        equipment:     exercise.equipment,
+        instructions:  exercise.instructions,
+        isCustom:      exercise.isCustom,
+      };
+  
+      return {
+        ...prev,
+        exercises: [...prev.exercises, newWorkoutExercise],
+      };
+    });
+  
     setModalVisible(false);
   };
 
-  const handleDeleteExercise = (exerciseId: number): void => {
-    setWorkout((prevWorkout) => ({
-      ...prevWorkout,
-      exercises: prevWorkout.exercises.filter(
-        (exercise) => exercise.workout_exercise_id !== exerciseId
-      ),
+  const handleDeleteExercise = (workout_exercise_id: number): void => {
+    setWorkout(prev => ({
+      ...prev,
+      exercises: prev.exercises.filter(ex => ex.workout_exercise_id !== workout_exercise_id),
     }));
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{workout.workout_name}</Text>
         <Text style={styles.date}>{new Date(workout.workout_date).toLocaleDateString()}</Text>
       </View>
       
@@ -70,7 +84,7 @@ const WorkoutScreen: React.FC = () => {
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.button}
-          onPress={() => console.log("Save Workout")}
+          onPress={() => setSaveFromVisible(true)}
         >
           <Icon name="save" size={18} color="#007AFF" />
           <Text style={styles.buttonText}>Save Workout</Text>
@@ -92,10 +106,14 @@ const WorkoutScreen: React.FC = () => {
         onClose={() => setModalVisible(false)}
         onSelectExercise={handleSelectExercise}
       />
-      
       <RestTimer
         isVisible={restTimerVisible}
         onClose={() => setRestTimerVisible(false)}
+      />
+      <SaveForm
+        workout={workout}
+        isVisible={saveFormVisible}
+        onClose={() => setSaveFromVisible(false)}
       />
     </SafeAreaView>
   );

@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 import exerciseData from '../assets/data/exercises.json';
-import { Exercise, WorkoutExercise } from '../.types/types';
+import { Exercise, WorkoutExercise,Workout } from '../.types/types';
 
 let dbInstance: SQLite.SQLiteDatabase;
 
@@ -28,7 +28,7 @@ export const openDB = async () => {
           `CREATE TABLE IF NOT EXISTS workout (
             workout_id INTEGER PRIMARY KEY AUTOINCREMENT,
             workout_name TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            workout_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
           );`
         );
 
@@ -176,7 +176,6 @@ export async function insertWorkoutSession(db: SQLite.SQLiteDatabase, workout_na
   return result?.id ?? 0;
 }
 
-
 export async function insertExerciseForSession(db: SQLite.SQLiteDatabase, workout_id: number, exercise_id: number, orderInWorkout: number): Promise<void> {
   await db.runAsync(
     `INSERT INTO workout_exercise (workout_id, exercise_id, order_in_workout)
@@ -185,7 +184,35 @@ export async function insertExerciseForSession(db: SQLite.SQLiteDatabase, workou
   );
 }
 
+export const saveWorkoutSession = async (db: SQLite.SQLiteDatabase, workout:Workout ) => {
+  try {
+    await db.withTransactionAsync(async () => {
 
+      const workoutResult = await db.getFirstAsync<{ lastInsertRowId: number }>(
+      `INSERT INTO workout (workout_name) VALUES (?)`,
+      [workout.workout_name]
+      );
 
+      const workoutId = workoutResult?.lastInsertRowId ?? 0;
 
+      for( const[ index, exercise] of workout.exercises.entries()) {
+        const exerciseResult = await db.getFirstAsync<{ lastInsertRowId: number }>(
+          `INSERT INTO workout_exercise (workout_id, exercise_id, order_in_workout) VALUES (?, ?, ?)`,
+          [workoutId, exercise.exercise_id, index + 1]
+        );
 
+        const workout_exercise_id = exerciseResult?.lastInsertRowId ?? 0;
+
+        for (const set of exercise.sets) {
+          await db.runAsync(
+            `INSERT INTO sets (workout_exercise_id, set_number, weight, reps) VALUES (?, ?, ?, ?)`,
+            [workout_exercise_id, set.set_number, set.weight, set.reps]
+          );
+        }
+      }
+      
+    });
+  } catch (error) {
+    console.error("Error saving workout session:", error);
+  }
+}

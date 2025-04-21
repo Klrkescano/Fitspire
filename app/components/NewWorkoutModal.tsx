@@ -15,8 +15,7 @@ interface NewWorkoutFormProps {
   onClose: () => void;
 }
 
-const NewWorkoutForm: React.FC<NewWorkoutFormProps> = ({ isVisible, onClose, }) => {
-
+const NewWorkoutModal: React.FC<NewWorkoutFormProps> = ({ isVisible, onClose, }) => {
 
     // Function to handle the transition to the workout screen
     const handleTrackWorkout = () => {
@@ -33,7 +32,9 @@ const NewWorkoutForm: React.FC<NewWorkoutFormProps> = ({ isVisible, onClose, }) 
             visible={isVisible}
             onRequestClose={onClose}
         >
+          <TouchableOpacity onPress={onClose} style={{ flex: 1 }} activeOpacity={1}>
             <View style={styles.overlay}>
+              <TouchableOpacity onPress={()=>{}}>
                 <View style={styles.modalContainer}>
                     <Text style={styles.title}>Start Workout</Text>
 
@@ -55,12 +56,14 @@ const NewWorkoutForm: React.FC<NewWorkoutFormProps> = ({ isVisible, onClose, }) 
                     </TouchableOpacity>
 
                 </View>
+              </TouchableOpacity>
             </View>
+          </TouchableOpacity>
         </Modal>
     );
 };
 
-export default NewWorkoutForm;
+export default NewWorkoutModal;
 
 const styles = StyleSheet.create({
   overlay: {
