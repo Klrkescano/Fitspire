@@ -1,71 +1,149 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { WorkoutExercise, Set } from '../../.types/types';
+import SetComponent from './SetComponent';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
-// Define the Exercise interface to ensure type safety for exercise objects
-interface Exercise {
-    id: number;
-    name: string;
-    muscle: string;
-    equipment: string;
-    instruction: string;
-}
-
-// Define props interface for the ExerciseItem component
 interface ExerciseItemProps {
-    exercise: Exercise;
+  ex: WorkoutExercise;
+  onDelete: (exercise_id: number) => void;
 }
 
-// Functional component to display an exercise item
-const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
-    return (
-        <TouchableOpacity style={styles.card}>
-          <View style={styles.textContainer}>
-            {/* Display the exercise name */}
-            <Text style={styles.title}>{exercise.name}</Text>
-            {/* Display muscle group and equipment used */}
-            <Text style={styles.subtitle}>
-              {exercise.muscle} | {exercise.equipment}
-            </Text>
+const ExerciseItem: React.FC<ExerciseItemProps> = ({ ex, onDelete }) => {
+  const [sets, setSets] = useState<Set[]>(ex.sets || []);
+
+  const addSet = (workout_exercise_id: number) => {
+    const newSet: Set = {
+      set_id: sets.length + 1,
+      weight: 0,
+      reps: 0,
+      workout_exercise_id: 0,
+      set_number: 0
+    };
+
+    setSets([...sets, newSet]);
+  }
+
+  const deleteSet = (workout_exercise_id: number, setIndex: number) => {
+    setSets(sets.filter((_, index) => index !== setIndex));
+  }
+
+  const updateSet = (workout_exercise_id: number, setIndex: number, key: keyof Set, value: string) => {
+    const newSets = sets.map((set, index) => {
+      if (index === setIndex) {
+        return {
+          ...set,
+          [key]: value,
+        };
+      }
+      return set;
+    });
+
+    setSets(newSets);
+  }
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.header}>
+        <View style={styles.textContainer}>
+          <Text style={styles.title}>{ex.exercise_name}</Text>
+          <View style={styles.tags}>
+            <Text style={styles.tag}>{ex.muscle_group}</Text>
+            <Text style={styles.tag}>{ex.equipment}</Text>
           </View>
-          {/* Plus symbol for potential action (e.g., add to workout) */}
-          <Text style={styles.add}>{'+'}</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => onDelete(ex.workout_exercise_id)}
+          style={styles.deleteButton}
+        >
+        <Icon name="times" size={24} color="#E74C3C" />
         </TouchableOpacity>
-      );
+      </View>
+      <View style={styles.setsContainer}>
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => addSet(ex.workout_exercise_id)}
+        >
+          <Text style={styles.addButtonText}>+ Add Set</Text>
+        </TouchableOpacity>
+        <SetComponent
+          sets={sets}
+          exerciseId={ex.exercise_id}
+          updateSet={updateSet}
+          deleteSet={deleteSet}
+        />
+      </View>
+    </View>
+  );
 };
-    
-// Styles for the component
+
+const { width, height } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: '#EEF4FF', // Light blue background
-        padding: 16,
-        marginVertical: 8,
-        marginHorizontal: 16,
-        borderRadius: 12,
-        flexDirection: 'row', // Arrange elements in a row
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3, // Android shadow effect
-    },
-    textContainer: {
-        flex: 1, // Allow text container to take available space
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333', // Darker text color for contrast
-    },
-    subtitle: {
-        fontSize: 14,
-        color: '#666', // Grayish text color for secondary details
-    },
-    add: {
-        fontSize: 20,
-        color: '#999', // Light gray color for plus sign
-    },
+  card: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    marginVertical: 8,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  textContainer: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginBottom: 4,
+  },
+  tags: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  tag: {
+    fontSize: 12,
+    color: '#666',
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  deleteButton: {
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+  },
+  setsContainer: {
+    maxHeight: height * 0.4,
+    overflow: 'scroll',
+  },
+  addButton: {
+    backgroundColor: '#007AFF',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  addButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+  },
 });
-    
-// Export the component for use in other parts of the app
+
+
 export default ExerciseItem;

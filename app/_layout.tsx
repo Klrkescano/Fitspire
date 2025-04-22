@@ -4,6 +4,7 @@ import { useFonts } from 'expo-font';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import '../global.css';
+import { SQLiteProvider } from 'expo-sqlite';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -40,5 +41,9 @@ export default function RootLayout() {
 
   if (!fontsLoaded || loading) return null;
 
-  return <Stack screenOptions={{ headerShown: false }}></Stack>;
+  return(
+  <SQLiteProvider databaseName='fitspireDB.db'>
+    <Stack screenOptions={{ headerShown: false }}></Stack>
+  </SQLiteProvider>
+  );
 }

@@ -333,10 +333,10 @@ const Profile: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-
-      <Modal visible={modalVisible} transparent animationType="fade">
+      <Modal visible={modalVisible} transparent={true} animationType="slide">
+       <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View className="flex-1 justify-center items-center bg-slate-400 bg-opacity-50 backdrop-blur-xl">
+          <View className="flex-1 justify-center items-center">
             <View className="bg-white p-6 rounded-lg" style={{ width: '80%' }}>
               {[
                 { label: 'Name', value: newName, setValue: setNewName },
@@ -373,8 +373,10 @@ const Profile: React.FC = () => {
             </View>
           </View>
         </TouchableWithoutFeedback>
+      </View>
       </Modal>
-    </View>
+      </View>
+
   );
 };
 
