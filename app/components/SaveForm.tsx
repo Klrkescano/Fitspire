@@ -19,6 +19,10 @@ interface SaveFormProps {
   workout: Workout;
 }
 
+// TODO adjust styling
+//TODO add workout summary to the modal
+// TODO add note feature??
+
 const SaveForm: React.FC<SaveFormProps> = ({ isVisible, onClose, workout }) => {
   const db = useSQLiteContext();
   const currentDate = new Date().toLocaleDateString();
@@ -44,6 +48,11 @@ const SaveForm: React.FC<SaveFormProps> = ({ isVisible, onClose, workout }) => {
       });
   }
 
+  // add total time for the workout?
+  const exercisesDone = workout.exercises.length;
+  const totalSets = workout.exercises.reduce((total, ex) => total + ex.sets.length, 0);
+  const totalWeights = workout.exercises.reduce((total, ex) => total + ex.sets.reduce((sum, set) => sum + set.weight, 0), 0);
+
   return (
     <Modal
         animationType="slide"
@@ -53,22 +62,25 @@ const SaveForm: React.FC<SaveFormProps> = ({ isVisible, onClose, workout }) => {
     >
       <TouchableOpacity onPress={onClose} style={{ flex: 1 }} activeOpacity={1}>
         <View style={styles.overlay}>
-          <TouchableOpacity onPress={()=>{}}>
+          <TouchableOpacity onPress={()=>{}} activeOpacity={1}>
             <View style={styles.modalContainer}>
                 <Text style={styles.title}>Workout Summary</Text>
-                <View>
-                    <Text>Date: {currentDate}</Text>
-                  <View>
+                <View style={styles.dateContainer}>
+                    <Text style={styles.dateText}>Date:</Text>
+
+                    <Text style={styles.input}>{currentDate}</Text>
+                </View> 
+                  
                   <TextInput
                     placeholder="Workout Name"
                     style={styles.input}
                     value={workoutName}
                     onChangeText={setWorkoutName}
                   />
-                  <Text>Exercises Done:</Text>
-                  <Text>Total Sets:</Text>
-                  <Text>Total Weights Lifted:</Text>
-                  </View>
+                  <View style={styles.summaryContainer}>
+                    <Text style={styles.summaryText}>Exercises Done: {exercisesDone}</Text>
+                    <Text style={styles.summaryText}>Total Sets: {totalSets}</Text>
+                    <Text style={styles.summaryText}>Total Weights Lifted: {totalWeights}</Text>
                 </View>
 
                 <TouchableOpacity style={styles.buttonWithIcon} onPress={handleSaveWorkout}>
@@ -99,12 +111,33 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 24,
     borderRadius: 24,
+    marginHorizontal: 20,
+    elevation: 5,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1f2937', // gray-800
+    color: '#1f2937',
     marginBottom: 16,
+    textAlign: 'center',
+  },
+  dateContainer: {
+    marginBottom:16,
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#1f2937',
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  summaryContainer: {
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  summaryText: {
+    fontSize: 16,
+    color: '#1f2937',
+    marginBottom: 10,
   },
   buttonWithIcon: {
     backgroundColor: '#3b82f6',

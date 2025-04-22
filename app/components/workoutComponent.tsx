@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import { Text, View, StyleSheet, FlatList, Button, Dimensions } from "react-native";
 import { Workout as WorkoutType, WorkoutExercise } from "../../.types/types";
-import ExerciseItem from "./ExerciseItem";
+import ExerciseItem from "./exerciseItem";
 import { useSQLiteContext } from "expo-sqlite";
 import { getExercisesFromWorkout} from "../../.utils/databaseSetup";
 const { width, height } = Dimensions.get("window");

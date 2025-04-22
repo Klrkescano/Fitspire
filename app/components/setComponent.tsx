@@ -44,14 +44,14 @@ const SetComponent: React.FC<SetComponentProps> = ({ sets, exerciseId, updateSet
             <Text style={styles.setNumber}>{index + 1}</Text>
             <TextInput
               style={styles.input}
-              placeholder="0"
+              placeholder="Weight"
               keyboardType="numeric"
               value={item.weight?.toString() || ''}
               onChangeText={(value) => updateSet(exerciseId, index, 'weight', value)}
             />
             <TextInput
               style={styles.input}
-              placeholder="0"
+              placeholder="Reps"
               keyboardType="numeric"
               value={item.reps?.toString() || ''}
               onChangeText={(value) => updateSet(exerciseId, index, 'reps', value)}
