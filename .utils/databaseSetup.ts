@@ -216,3 +216,48 @@ export const saveWorkoutSession = async (db: SQLite.SQLiteDatabase, workout:Work
     console.error("Error saving workout session:", error);
   }
 }
+
+export async function getWorkoutSessions(db: SQLite.SQLiteDatabase): Promise<Workout[]> {
+  try {
+    const result = await db.getAllAsync(
+      `SELECT w.workout_id, w.workout_name, w.workout_date, we.exercise_id, we.order_in_workout, e.exercise_name, e.muscle_group, e.equipment, e.instructions, e.is_custom,
+              s.set_id, s.set_number, s.weight, s.reps
+       FROM workout w
+       LEFT JOIN workout_exercise we ON w.workout_id = we.workout_id
+       LEFT JOIN exercise e ON we.exercise_id = e.exercise_id
+       LEFT JOIN sets s ON we.workout_exercise_id = s.workout_exercise_id
+       ORDER BY w.workout_date DESC`
+    );
+    return result as Workout[];
+  } catch (error) {
+    console.error("Error fetching workout sessions:", error);
+    return [];
+  }
+}
+
+export async function updateWorkoutSession(db: SQLite.SQLiteDatabase, workout: Workout): Promise<void> {
+  try {
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        `UPDATE workout SET workout_name = ?, workout_date = ? WHERE workout_id = ?`,
+        [workout.workout_name, workout.workout_date, workout.workout_id ?? 0]
+      );
+
+      for (const exercise of workout.exercises) {
+        await db.runAsync(
+          `UPDATE workout_exercise SET order_in_workout = ? WHERE workout_exercise_id = ?`,
+          [exercise.order_in_workout, exercise.workout_exercise_id]
+        );
+
+        for (const set of exercise.sets) {
+          await db.runAsync(
+            `UPDATE sets SET weight = ?, reps = ? WHERE set_id = ?`,
+            [set.weight ?? 0, set.reps ?? 0, set.set_id ?? 0]
+          );
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error updating workout session:", error);
+  }
+}

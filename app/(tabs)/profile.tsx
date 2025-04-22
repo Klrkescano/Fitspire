@@ -5,12 +5,13 @@ import {
   View,
   Text,
   TouchableOpacity,
-  FlatList,
   Image,
   ActivityIndicator,
   ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import { useUser } from '../context/UserContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -31,24 +32,16 @@ type Stat = {
   metrics: string;
   Value: number;
 };
-type FitStat = {
-  name: string;
-  value: number;
-  metrics: string;
-  key: string;
-};
 
 const Profile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Stat[]>([]);
-  const [fitstats, setFitStats] = useState<FitStat[]>([]);
   const { user, setUser } = useUser();
   const [newName, setNewName] = useState<string>('');
   const [newHeight, setNewHeight] = useState<string>('');
   const [newWeight, setNewWeight] = useState<string>('');
   const [newAge, setNewAge] = useState<string>('');
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [avatarModalVisible, setAvatarModalVisible] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -78,41 +71,7 @@ const Profile: React.FC = () => {
           setLoading(false);
         } catch (error) {
           console.error('Error processing Firestore snapshot:', error);
-        }
-      },
-      (error) => {
-        console.error('Firestore subscription error:', error);
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      try {
-        unsubscribe();
-      } catch (error) {
-        console.error('Error unsubscribing from Firestore:', error);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const fitstatsCollection = collection(db, 'fitstats');
-
-    const unsubscribe = onSnapshot(
-      fitstatsCollection,
-      (querySnapshot) => {
-        try {
-          const fitstatsData: FitStat[] = [];
-          querySnapshot.forEach((documentSnapshot) => {
-            fitstatsData.push({
-              ...(documentSnapshot.data() as FitStat),
-              key: documentSnapshot.id,
-            });
-          });
-          setFitStats(fitstatsData);
           setLoading(false);
-        } catch (error) {
-          console.error('Error processing Firestore snapshot:', error);
         }
       },
       (error) => {
@@ -140,21 +99,15 @@ const Profile: React.FC = () => {
             name: savedName,
           }));
         }
-      } catch (error) {}
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
     };
 
     if (user?.name) {
       loadUserData();
     }
   }, [setUser, user?.name]);
-
-  const getInitials = (name: string): string => {
-    if (!name) return '';
-    return name
-      .split(' ')
-      .map((part) => part[0].toUpperCase())
-      .join('');
-  };
 
   const handleSave = useCallback(async () => {
     if (!user?.email) {
@@ -208,7 +161,9 @@ const Profile: React.FC = () => {
       });
 
       setModalVisible(false);
-    } catch (error) {}
+    } catch (error) {
+      console.error('Error saving user data:', error);
+    }
   }, [newName, newHeight, newWeight, newAge, user?.email, stats, setUser]);
 
   const handleLogout = async () => {
@@ -216,11 +171,17 @@ const Profile: React.FC = () => {
       const auth = getAuth();
       await signOut(auth);
       router.replace('/(auth)/signIn');
-    } catch (error) {}
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+    );
   }
 
   if (!user) {
@@ -231,143 +192,204 @@ const Profile: React.FC = () => {
     );
   }
 
-  const items = [
-    { name: 'Statistics', icons: require('../../assets/icons/info.png') },
-    { name: 'Exercises', icons: require('../../assets/icons/run.png') },
-    { name: 'Measurements', icons: require('../../assets/icons/filter.png') },
-    { name: 'Calendar', icons: require('../../assets/icons/calendar.png') },
-  ];
+  const calculateBMI = () => {
+    const weight = parseFloat(user.weight ?? '') || 0;
+    const heightCm = parseFloat(user.height ?? '') || 0;
+    const heightM = heightCm / 100;
+    return heightM > 0 ? (weight / (heightM * heightM)).toFixed(1) : 'N/A';
+  };
+
+  const getBMICategory = (bmi: string) => {
+    const bmiValue = parseFloat(bmi);
+    if (isNaN(bmiValue)) return '';
+    
+    if (bmiValue < 18.5) return 'Underweight';
+    if (bmiValue < 25) return 'Normal';
+    if (bmiValue < 30) return 'Overweight';
+    return 'Obese';
+  };
+
+  const getBMICategoryColor = (category: string) => {
+    switch (category) {
+      case 'Underweight': return 'text-yellow-500';
+      case 'Normal': return 'text-green-500';
+      case 'Overweight': return 'text-orange-500';
+      case 'Obese': return 'text-red-500';
+      default: return 'text-blue-500';
+    }
+  };
+
+  const bmiValue = calculateBMI();
+  const bmiCategory = getBMICategory(bmiValue);
+  const bmiCategoryColor = getBMICategoryColor(bmiCategory);
+
 
   return (
-    <View className="flex-1">
-      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}>
-        <View className="justify-start items-center p-4 py-12 mb-12">
-          <View className="flex-1 items-center w-full justify-between mb-6 px-6 mt-6">
-            <View className="w-36 h-36 rounded-full bg-slate-600 justify-center items-center mb-6">
-              <View className="w-16 h-16 rounded-full  justify-center items-center">
-                <Text className="text-white text-5xl font-bold">
+    <SafeAreaView className="flex-1 bg-gray-100">
+    <StatusBar barStyle="dark-content" backgroundColor="#f3f4f6" />
+    <ScrollView className="flex-1" contentContainerStyle={{ padding: 20}}>
+      
+      <View className="items-center pt-10 pb-6">
+        {user.avatar ? (
+          <Image
+            source={{ uri: user.avatar }}
+            className="w-28 h-28 rounded-full"
+          />
+        ) : (
+          <View className="w-32 h-32 rounded-full bg-blue-500 justify-center items-center shadow-lg">
+                <Text className="text-white text-4xl font-bold">
                   {user?.name
                     ?.split(' ')
                     .map((part) => part[0].toUpperCase())
                     .join('')}
                 </Text>
               </View>
-
+        )} 
               <TouchableOpacity
                 onPress={() => setModalVisible(true)}
-                className="absolute -bottom-2 -right-2  p-3 rounded-xl"
+                className="absolute top-32 right-1/2 mr-[-60px] p-3 rounded-full shadow-md"
               >
                 <Image
                   source={require('../../assets/icons/edit.png')}
-                  className="h-8 w-8"
+                  className="h-6 w-6"
                 />
               </TouchableOpacity>
+              <Text className="text-xl font-semibold mt-4">{user?.name || 'Guest'}</Text>
+              <Text className="text-gray-500">{user?.email || 'guest@example.com'}</Text>
+
             </View>
 
-            <Text className="text-xl font-rubik-semibold flex-1 ml-4">
-              {user?.name || 'Guest'}
-            </Text>
-            <Text>{user?.email || 'guest@example.com'}</Text>
-          </View>
-
-          <View className="mt-6 px-7 w-full">
-            <Text className="text-black text-2xl font-rubik-bold">
-              Current Stats
-            </Text>
-            <View className="flex-row flex-wrap justify-between mt-4">
-              {stats.map((item, index) => (
-                <View
-                  key={index}
-                  className="w-[48%] aspect-square border border-gray-300 rounded-lg justify-center items-center mb-4 bg-gray-50"
-                >
-                  <Text className="text-gray-800 font-medium">{item.Name}</Text>
-                  <Text className="text-blue-500 font-semibold mt-1">
-                    {item.Value} {item.metrics}
+        <View className="mt-10">
+          <Text className="text-2xl font-bold mb-6 text-gray-800">Current Stats</Text>
+          
+          <View className="flex-row flex-wrap justify-between">
+            <View className="w-[48%] mb-4 bg-white rounded-2xl shadow-md overflow-hidden">
+              <View className="p-4">
+                <Text className="text-lg font-medium text-gray-700">Weight</Text>
+                <View className="flex-row items-baseline mt-2">
+                  <Text className="text-2xl text-blue-500 font-bold">
+                    {user.weight || '0'}
                   </Text>
+                  <Text className="ml-1 text-blue-500 font-medium">kg</Text>
                 </View>
-              ))}
+              </View>
+            </View>
+            
+            <View className="w-[48%] mb-4 bg-white rounded-2xl shadow-md overflow-hidden">
+              <View className="p-4">
+                <Text className="text-lg font-medium text-gray-700">Height</Text>
+                <View className="flex-row items-baseline mt-2">
+                  <Text className="text-2xl text-blue-500 font-bold">
+                    {user.height || '0'}
+                  </Text>
+                  <Text className="ml-1 text-blue-500 font-medium">cm</Text>
+                </View>
+              </View>
+            </View>
 
-              <View className="w-[48%] aspect-square border border-gray-300 rounded-lg justify-center items-center mb-4 bg-gray-50">
-                <Text className="text-gray-800 font-medium">BMI</Text>
-                <Text className="text-blue-500 font-semibold mt-1">
-                  {(() => {
-                    const weight =
-                      stats.find((item) => item.Name === 'Weight')?.Value || 0;
-                    const heightCm =
-                      stats.find((item) => item.Name === 'Height')?.Value || 0;
-                    const heightM = heightCm / 100;
-                    return heightM > 0
-                      ? (weight / (heightM * heightM)).toFixed(1)
-                      : 'N/A';
-                  })()}
-                </Text>
+            <View className="w-[48%] mb-4 bg-white rounded-2xl shadow-md overflow-hidden">
+              <View className="p-4">
+                <Text className="text-lg font-medium text-gray-700">Age</Text>
+                <View className="flex-row items-baseline mt-2">
+                  <Text className="text-2xl text-blue-500 font-bold">
+                    {user.age || '0'}
+                  </Text>
+                  <Text className="ml-1 text-blue-500 font-medium">years</Text>
+                </View>
+              </View>
+            </View>
+
+           <View className="w-[48%] mb-4 bg-white rounded-2xl shadow-md overflow-hidden">
+              <View className="p-4">
+                <Text className="text-lg font-medium text-gray-700">BMI</Text>
+                <View className="flex-row items-baseline mt-2">
+                  <Text className="text-2xl text-blue-500 font-bold">
+                    {bmiValue}
+                  </Text>
+                  {bmiCategory && (
+                    <Text className={`ml-1 ${bmiCategoryColor} text-sm font-medium`}>
+                      ({bmiCategory})
+                    </Text>
+                  )}
+                </View>
               </View>
             </View>
           </View>
-          <View className="px-7 w-full ">
-            <Text className="text-black text-2xl font-rubik-bold">
-              Current Goal
-            </Text>
-            <View className="flex-row flex-wrap justify-between mt-4 ">
-              <Text className="font-rubik text-lg">Lose 5kg in 2 months</Text>
-            </View>
-            <View className="flex-row flex-wrap justify-between mt-10 ">
-              {items.map((item, index) => (
-                <View
-                  key={index}
-                  className="flex flex-row w-[48%] p-3 border border-gray-300 rounded-lg justify-center items-center mb-4 bg-gray-50"
-                >
-                  <Image source={item.icons} className="w-8 h-8 mr-3 " />
-                  <Text className="text-gray-800 font-medium">{item.name}</Text>
-                </View>
-              ))}
+          
+          {/* BMI Description */}
+          <View className="mt-2 mb-4 bg-white rounded-2xl shadow-md overflow-hidden">
+            <View className="p-5">
+              <Text className="text-lg font-medium text-gray-700 mb-2">BMI Information</Text>
+              <View className="flex-row items-center mb-1">
+                <View className="w-3 h-3 rounded-full bg-yellow-500 mr-2" />
+                <Text className="text-gray-600">Underweight: BMI less than 18.5</Text>
+              </View>
+              <View className="flex-row items-center mb-1">
+                <View className="w-3 h-3 rounded-full bg-green-500 mr-2" />
+                <Text className="text-gray-600">Normal: BMI between 18.5 and 24.9</Text>
+              </View>
+              <View className="flex-row items-center mb-1">
+                <View className="w-3 h-3 rounded-full bg-orange-500 mr-2" />
+                <Text className="text-gray-600">Overweight: BMI between 25 and 29.9</Text>
+              </View>
+              <View className="flex-row items-center">
+                <View className="w-3 h-3 rounded-full bg-red-500 mr-2" />
+                <Text className="text-gray-600">Obese: BMI 30 or greater</Text>
+              </View>
             </View>
           </View>
-          <View>
-            <TouchableOpacity onPress={handleLogout}>
-              <Text className="text-blue-500 font-bold text-lg mt-10">
-                {' '}
-                Logout
-              </Text>
-            </TouchableOpacity>
-          </View>
+        </View>
+
+        <View className="mt-6 mb-20 items-center">
+          <TouchableOpacity 
+            onPress={handleLogout}
+            className="bg-blue-500 py-3 px-8 rounded-xl shadow-md"
+          >
+            <Text className="text-white font-semibold text-lg">Logout</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
       <Modal visible={modalVisible} transparent={true} animationType="slide">
        <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View className="flex-1 justify-center items-center">
-            <View className="bg-white p-6 rounded-lg" style={{ width: '80%' }}>
+          <View className="flex-1 justify-center items-center bg-black bg-opacity-30">
+            <View className="bg-white p-6 rounded-xl w-5/6 shadow-xl">
+              <Text className="text-xl font-bold mb-4">Edit Profile</Text>
+              
               {[
                 { label: 'Name', value: newName, setValue: setNewName },
-                { label: 'Height', value: newHeight, setValue: setNewHeight },
-                { label: 'Weight', value: newWeight, setValue: setNewWeight },
+                { label: 'Height (cm)', value: newHeight, setValue: setNewHeight },
+                { label: 'Weight (kg)', value: newWeight, setValue: setNewWeight },
                 { label: 'Age', value: newAge, setValue: setNewAge },
               ].map(({ label, value, setValue }) => (
-                <View key={label} className="flex-row items-center mb-4">
-                  <Text className="w-20 text-gray-700">{label}:</Text>
+                <View key={label} className="mb-4">
+                  <Text className="text-gray-700 mb-1">{label}</Text>
                   <TextInput
                     value={value}
                     onChangeText={(text) => setValue(text)}
                     placeholder={`Enter ${label.toLowerCase()}`}
                     placeholderTextColor="#A9A9A9"
-                    className="flex-1 p-3 bg-gray-100 border border-gray-300 rounded-lg"
+                    keyboardType={
+                      label !== 'Name' ? 'numeric' : 'default'
+                    }
+                    className="p-4 bg-gray-100 border border-gray-300 rounded-lg"
                   />
                 </View>
               ))}
 
-              <View className="flex justify-center items-center w-full">
-                <TouchableOpacity
-                  onPress={handleSave}
-                  className="bg-blue-500 p-3 rounded-lg w-24 mb-4"
-                >
-                  <Text className="text-white text-center">Save</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
+              <View className="flex-row justify-end mt-6 space-x-4">
+                <TouchableOpacity 
                   onPress={() => setModalVisible(false)}
-                  className="bg-red-500 p-3 rounded-lg w-24"
+                  className="py-3 px-5"
                 >
-                  <Text className="text-white text-center">Cancel</Text>
+                  <Text className="text-gray-600 font-medium">Cancel</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  onPress={handleSave}
+                  className="bg-blue-500 py-3 px-6 rounded-lg shadow"
+                >
+                  <Text className="text-white font-medium">Save</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -375,8 +397,7 @@ const Profile: React.FC = () => {
         </TouchableWithoutFeedback>
       </View>
       </Modal>
-      </View>
-
+    </SafeAreaView>
   );
 };
 

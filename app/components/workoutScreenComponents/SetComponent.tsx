@@ -10,7 +10,7 @@ import {
   Dimensions, 
   TouchableOpacity 
 } from 'react-native';
-import { Set } from '../../.types/types';
+import { Set } from '../../../.types/types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const { width, height } = Dimensions.get('window');

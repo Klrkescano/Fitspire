@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { WorkoutExercise, Set } from '../../.types/types';
+import { WorkoutExercise, Set } from '../../../.types/types';
 import SetComponent from './SetComponent';
 import Icon from 'react-native-vector-icons/FontAwesome';
 

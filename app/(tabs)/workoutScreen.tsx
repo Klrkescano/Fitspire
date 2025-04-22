@@ -1,13 +1,12 @@
 import { SafeAreaView, Text, TouchableOpacity, StyleSheet, View, Dimensions } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import React, { useState } from "react";
-import ExerciseLibrary from "../components/ExerciseLibrary";
-import WorkoutComponent from "../components/WorkoutComponent";
+import ExerciseLibrary from "../components/workoutScreenComponents/ExerciseLibrary";
+import WorkoutComponent from "../components/workoutScreenComponents/WorkoutComponent";
 import { Workout, Exercise,WorkoutExercise} from "../../.types/types";
-import RestTimer from "../components/RestTimer";
-import SaveForm from "../components/SaveForm";
+import RestTimer from "../components/workoutScreenComponents/RestTimer";
+import SaveForm from "../components/workoutScreenComponents/SaveForm";
 const { width, height } = Dimensions.get('window');
-import { useSQLiteContext } from "expo-sqlite";
 
 const WorkoutScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
