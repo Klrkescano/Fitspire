@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 import exerciseData from '../assets/data/exercises.json';
-import { Exercise, WorkoutExercise,Workout } from '../.types/types';
+import { Exercise, WorkoutExercise,Workout, WorkoutHistoryEntry } from '../.types/types';
 
 let dbInstance: SQLite.SQLiteDatabase;
 
@@ -291,3 +291,114 @@ export async function updateWorkoutSession(db: SQLite.SQLiteDatabase, workout: W
     console.error("Error updating workout session:", error);
   }
 }
+
+
+
+export const getWorkoutHistoryByMonthYear = async (
+  db: SQLite.SQLiteDatabase,
+  month: number,
+  year: number
+): Promise<WorkoutHistoryEntry[]> => {
+
+  // Format month number with leading zero (e.g., '03' for March)
+  const monthString = month.toString().padStart(2, '0');
+  const yearString = year.toString();
+
+  try {
+      // Comprehensive query joining all necessary tables (Adjust table/column names if needed)
+      const query = `
+          SELECT
+              w.workout_id, w.workout_name, w.workout_date,
+              we.workout_exercise_id, we.order_in_workout,
+              e.exercise_id, e.exercise_name, -- Add e.muscle_group, e.equipment here if needed
+              s.set_id, s.set_number, s.weight, s.reps
+          FROM workout w
+          LEFT JOIN workout_exercise we ON w.workout_id = we.workout_id
+          LEFT JOIN exercise e ON we.exercise_id = e.exercise_id
+          LEFT JOIN sets s ON we.workout_exercise_id = s.workout_exercise_id
+          WHERE strftime('%Y', w.workout_date) = ? AND strftime('%m', w.workout_date) = ?
+          ORDER BY w.workout_date DESC, we.order_in_workout ASC, s.set_number ASC;
+      `;
+
+      // Use getAllAsync for potentially many rows
+      // Define expected row structure for type safety (optional but recommended)
+      type HistoryQueryResultRow = {
+          workout_id: number;
+          workout_name: string;
+          workout_date: string; // ISO string
+          workout_exercise_id: number | null; // LEFT JOIN can result in nulls
+          order_in_workout: number | null;
+          exercise_id: number | null;
+          exercise_name: string | null;
+          set_id: number | null;
+          set_number: number | null;
+          weight: number | null;
+          reps: number | null;
+      }
+
+      const results = await db.getAllAsync<HistoryQueryResultRow>(query, [yearString, monthString]);
+
+      // --- Process the flat results into nested structure ---
+      const processedData: WorkoutHistoryEntry[] = [];
+      // Use Map for efficient grouping by workout_id
+      const workoutMap = new Map<number, WorkoutHistoryEntry>();
+
+      for (const row of results) {
+          // Skip rows that don't even have a workout (shouldn't happen with this query, but safe check)
+          if (row.workout_id === null) continue;
+
+          let workout = workoutMap.get(row.workout_id);
+
+          // If workout not yet in map, create it
+          if (!workout) {
+              workout = {
+                  workout_id: row.workout_id,
+                  workout_name: row.workout_name ?? 'Unnamed Workout',
+                  workout_date_iso: row.workout_date, // Store raw ISO date
+                  exercises: [],
+              };
+              workoutMap.set(row.workout_id, workout);
+              processedData.push(workout); // Add to ordered array
+          }
+
+          // Check if exercise details exist (due to LEFT JOIN)
+          if (row.workout_exercise_id !== null && row.exercise_id !== null) {
+              // Find or create exercise within the workout
+              let exercise = workout.exercises.find(ex => ex.workout_exercise_id === row.workout_exercise_id);
+              if (!exercise) {
+                  exercise = {
+                      workout_exercise_id: row.workout_exercise_id,
+                      order_in_workout: row.order_in_workout ?? 0,
+                      exercise_id: row.exercise_id,
+                      exercise_name: row.exercise_name ?? 'Unknown Exercise',
+                      // Add muscle_group/equipment here if selected in query and needed
+                      sets: [],
+                  };
+                  workout.exercises.push(exercise);
+              }
+
+              // Add set to the exercise, only if set details exist
+              if (row.set_id !== null && row.set_number !== null && row.weight !== null && row.reps !== null) {
+                  // Avoid adding duplicate sets if query/data has issues
+                  if (!exercise.sets.some(s => s.set_id === row.set_id)) {
+                      exercise.sets.push({
+                          set_id: row.set_id,
+                          set_number: row.set_number,
+                          weight: row.weight,
+                          reps: row.reps,
+                      });
+                  }
+              }
+          }
+      }
+
+      console.log(`Workspaceed ${processedData.length} workouts for ${monthString}/${yearString}`);
+      return processedData;
+
+  } catch (err: any) {
+      console.error(`Failed to fetch workout history for ${monthString}/${yearString}:`, err);
+      // Re-throw error or return empty array, depending on desired error handling
+      throw new Error("Database query failed: " + err.message);
+      // Or return [];
+  }
+};

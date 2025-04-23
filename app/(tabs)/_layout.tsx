@@ -73,6 +73,20 @@ const TabsLayout = () => {
               ),
             }}
           />
+          <Tabs.Screen
+            name="workoutHistory"
+            options={{
+              title: 'Workout History',
+              headerShown: false,
+              tabBarIcon: ({ focused }) => (
+                <Image
+                  source={icons.info}
+                  tintColor={focused ? '#0061ff' : '#666876'}
+                  className="size-6"
+                />
+              ),
+            }}
+          />
         </Tabs>
       </View>
     </UserProvider>
