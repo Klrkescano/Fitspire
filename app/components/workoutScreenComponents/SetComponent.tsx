@@ -20,50 +20,48 @@ interface SetComponentProps {
   exerciseId: number;
   updateSet: (exerciseId: number, setIndex: number, key: keyof Set, value: string) => void;
   deleteSet: (exerciseId: number, setIndex: number) => void;
+  selectSetToEdit: (setIndex: number, set: Set) => void;
+  editingIndex?: number | null;
 }
 
-// TODO: NEED to change add set button to be in the exercise item card component
+const SetComponent: React.FC<SetComponentProps> = ({ sets, exerciseId, updateSet, deleteSet, selectSetToEdit, editingIndex}) => {
 
-const SetComponent: React.FC<SetComponentProps> = ({ sets, exerciseId, updateSet, deleteSet}) => {
+
+  const setItem = ({ item, index }: { item: Set; index: number }) => {
+    const isEditing = index === editingIndex;
+
+    return (
+      <View style={[styles.setItem, isEditing && styles.editingItem]}>
+        <TouchableOpacity onPress={() => selectSetToEdit(index, item)} style={styles.setNumberContainer}>
+          <Text style={styles.setNumber}>{index + 1}</Text>
+        </TouchableOpacity>
+        <Text style={styles.staticText}>{item.weight ?? '-'}</Text>
+        <Icon name="times" size={16} color="#2C3E50" style={{ marginHorizontal: 4 }} />
+        <Text style={styles.staticText}>{item.reps ?? '-'}</Text>
+        <TouchableOpacity
+          onPress={() => deleteSet(exerciseId, index)}
+          style={styles.deleteButton}
+        >
+          <Icon name="minus" size={24} color="#E74C3C" />
+        </TouchableOpacity>
+      </View>
+    );
+  }
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Set</Text>
-        <Text style={styles.headerText}>Weight (kg)</Text>
+        <Text style={styles.headerText}>Weight (lbs)</Text>
         <Text style={styles.headerText}>Reps</Text>
         <View style={{ width: 24 }}></View>
       </View>
       <FlatList
-        style={{ maxHeight: height * 0.4, paddingBottom: 16 }}
+        style={{ maxHeight: height * 0.4, paddingBottom: 16, paddingHorizontal: 4 }}
         scrollEnabled={true}
         showsVerticalScrollIndicator={true}
         data={sets}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item, index }) => (
-          <View style={styles.setItem}>
-            <Text style={styles.setNumber}>{index + 1}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Weight"
-              keyboardType="numeric"
-              value={item.weight?.toString() || ''}
-              onChangeText={(value) => updateSet(exerciseId, index, 'weight', value)}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Reps"
-              keyboardType="numeric"
-              value={item.reps?.toString() || ''}
-              onChangeText={(value) => updateSet(exerciseId, index, 'reps', value)}
-            />
-            <TouchableOpacity 
-              style={styles.deleteButton}
-              onPress={() => deleteSet(exerciseId, index)}
-            >
-              <Icon name="trash" size={18} color="#FF3B30" />
-            </TouchableOpacity>
-          </View>
-        )}
+        renderItem={setItem}
       />
     </View>
   );
@@ -72,48 +70,79 @@ const SetComponent: React.FC<SetComponentProps> = ({ sets, exerciseId, updateSet
 const styles = StyleSheet.create({
   container: {
     width: '100%',
+    marginTop: 8,
+    paddingHorizontal: 4,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 8,
-    paddingHorizontal: 4,
+    paddingVertical: 6,
+    backgroundColor: '#f2f2f2',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
   },
   headerText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#666',
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#444',
     flex: 1,
     textAlign: 'center',
   },
   setItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
-    paddingVertical: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    backgroundColor: '#fff',
+    marginBottom: 6,
+    borderRadius: 10,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
   },
   setNumber: {
-    fontSize: 14,
-    color: '#1A1A1A',
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#black',
     flex: 1,
     textAlign: 'center',
+    paddingVertical: 8,
   },
   input: {
-    flex: 1,
+    flex: 1.2,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    padding: 8,
-    marginHorizontal: 4,
+    borderColor: '#D0D0D0',
     borderRadius: 8,
-    textAlign: 'center',
-    backgroundColor: '#FAFAFA',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    marginHorizontal: 4,
+    backgroundColor: '#F9F9F9',
     fontSize: 14,
+    textAlign: 'center',
   },
   deleteButton: {
-    padding: 6,
-    marginLeft: 4,
+    padding: 8,
+    marginLeft: 6,
+  },
+  editingItem: {
+    backgroundColor: '#E3F2FD',
+    borderColor: '#42A5F5',
+    borderWidth: 1.2,
+  },
+  staticText: {
+    fontSize: 16,
+    color: '#333',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flex: 1, // Makes sure each text takes equal width
+    textAlign: 'center', // Centers text horizontally
+  },
+  setNumberContainer: {
+    flex: 1,
+    alignItems: 'center',
   },
 });
 

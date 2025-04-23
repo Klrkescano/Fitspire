@@ -17,20 +17,17 @@ interface SaveFormProps {
   isVisible: boolean;
   onClose: () => void;
   workout: Workout;
+  clearWorkout: () => void;
 }
 
-// TODO adjust styling
-//TODO add workout summary to the modal
-// TODO add note feature??
-
-const SaveForm: React.FC<SaveFormProps> = ({ isVisible, onClose, workout }) => {
+const SaveForm: React.FC<SaveFormProps> = ({ isVisible, onClose, workout, clearWorkout }) => {
   const db = useSQLiteContext();
   const currentDate = new Date().toLocaleDateString();
   const [workoutName, setWorkoutName] = useState(workout.workout_name || '');
 
   const handleSaveWorkout = () => {
     const workoutData = {
-      ...workout, 
+      ...workout,
       workout_name: workoutName,
       workout_date: currentDate,
     };
@@ -39,6 +36,7 @@ const SaveForm: React.FC<SaveFormProps> = ({ isVisible, onClose, workout }) => {
       .then(() => {
         console.log('Workout saved successfully!', workoutData);
         onClose();
+        clearWorkout();
         setTimeout(() => {
           router.push('/(tabs)/home');
         }, 350);
@@ -48,54 +46,59 @@ const SaveForm: React.FC<SaveFormProps> = ({ isVisible, onClose, workout }) => {
       });
   }
 
-  // add total time for the workout?
   const exercisesDone = workout.exercises.length;
   const totalSets = workout.exercises.reduce((total, ex) => total + ex.sets.length, 0);
-  const totalWeights = workout.exercises.reduce((total, ex) => total + ex.sets.reduce((sum, set) => sum + set.weight, 0), 0);
+  const totalWeights = workout.exercises.reduce(
+    (total, ex) => total + (ex.sets?.reduce((sum, set) => sum + (set.weight ?? 0), 0) ?? 0),
+    0
+  );
 
   return (
     <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isVisible}
-        onRequestClose={onClose}
+      animationType="slide"
+      transparent={true}
+      visible={isVisible}
+      onRequestClose={onClose}
     >
       <TouchableOpacity onPress={onClose} style={{ flex: 1 }} activeOpacity={1}>
         <View style={styles.overlay}>
           <TouchableOpacity onPress={()=>{}} activeOpacity={1}>
             <View style={styles.modalContainer}>
-                <Text style={styles.title}>Workout Summary</Text>
-                <View style={styles.dateContainer}>
-                    <Text style={styles.dateText}>Date:</Text>
+              <Text style={styles.title}>Workout Summary</Text>
+              <View style={styles.dateContainer}>
+                <Text style={styles.dateText}>Date:</Text>
+                <Text style={styles.input}>{currentDate}</Text>
+              </View>
 
-                    <Text style={styles.input}>{currentDate}</Text>
-                </View> 
-                  
-                  <TextInput
-                    placeholder="Workout Name"
-                    style={styles.input}
-                    value={workoutName}
-                    onChangeText={setWorkoutName}
-                  />
-                  <View style={styles.summaryContainer}>
-                    <Text style={styles.summaryText}>Exercises Done: {exercisesDone}</Text>
-                    <Text style={styles.summaryText}>Total Sets: {totalSets}</Text>
-                    <Text style={styles.summaryText}>Total Weights Lifted: {totalWeights}</Text>
+              <TextInput
+                placeholder="Workout Name"
+                style={styles.input}
+                value={workoutName}
+                onChangeText={setWorkoutName}
+              />
+              <View style={styles.summaryContainer}>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryText}>Exercises Done:</Text>
+                  <Text style={styles.summaryValue}>{exercisesDone}</Text>
                 </View>
-
-                <TouchableOpacity style={styles.buttonWithIcon} onPress={handleSaveWorkout}>
-                    <Text style={styles.buttonText}>Save Workout</Text> 
-                    <Icon name="save" size={20} color="#fff" style={styles.icon} />
-                </TouchableOpacity>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryText}>Total Sets:</Text>
+                  <Text style={styles.summaryValue}>{totalSets}</Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryText}>Total Weights Lifted:</Text>
+                  <Text style={styles.summaryValue}>{totalWeights} kg</Text>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.buttonWithIcon} onPress={handleSaveWorkout}>
+                <Text style={styles.buttonText}>Save Workout</Text>
+                <Icon name="save" size={20} color="#fff" style={styles.icon} />
+              </TouchableOpacity>
             </View>
-
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
     </Modal>
-
-
-
   );
 };
 
@@ -108,21 +111,28 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContainer: {
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     padding: 24,
     borderRadius: 24,
     marginHorizontal: 20,
     elevation: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#1f2937',
     marginBottom: 16,
     textAlign: 'center',
   },
   dateContainer: {
-    marginBottom:16,
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    paddingBottom: 10,
   },
   dateText: {
     fontSize: 16,
@@ -133,11 +143,33 @@ const styles = StyleSheet.create({
   summaryContainer: {
     marginTop: 20,
     marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  summaryItem: {
+    backgroundColor: '#f9fafb',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   summaryText: {
     fontSize: 16,
+    color: '#4b5563',
+    fontWeight: '600',
+  },
+  summaryValue: {
+    fontSize: 16,
     color: '#1f2937',
-    marginBottom: 10,
+    fontWeight: '700',
   },
   buttonWithIcon: {
     backgroundColor: '#3b82f6',
@@ -148,18 +180,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    elevation: 3,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   input: {
-    backgroundColor: '#f0f0f0',
-    padding: 10,
+    backgroundColor: '#f9fafb',
+    padding: 12,
     borderRadius: 8,
-    marginBottom: 10,
+    marginBottom: 12,
     fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   icon: {
     marginLeft: 10,

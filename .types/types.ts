@@ -3,7 +3,7 @@
 
 // Interface for Workout Session object recorded by user.
 export interface Workout {
-    workout_id: number;
+    workout_id?: number;
     workout_name: string;
     workout_date: string;
     exercises: WorkoutExercise[];
@@ -24,7 +24,7 @@ export interface Exercise {
 // It also contains the order of the exercise in the workout session.
 export interface WorkoutExercise extends Exercise {
     workout_exercise_id: number;
-    workout_id: number;
+    workout_id?: number;
     order_in_workout: number;
     exercise_info: Exercise;
     sets: Set[];
@@ -33,10 +33,10 @@ export interface WorkoutExercise extends Exercise {
 // Interface for the sets object, which contains the set number, weight lifted, and reps done for each exercise in a workout session.
 export interface Set {
     set_id?: number;
-    workout_exercise_id: number;
-    set_number: number;
-    weight: number;
-    reps: number;
+    workout_exercise_id?: number;
+    set_number?: number;
+    weight?: number;
+    reps?: number;
 }
 
 

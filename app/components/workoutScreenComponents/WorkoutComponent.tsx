@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect} from "react";
 import { Text, View, StyleSheet, FlatList, Button, Dimensions } from "react-native";
 import { Workout as WorkoutType, WorkoutExercise } from "../../../.types/types";
 import ExerciseItem from "./ExerciseItem";
@@ -16,23 +16,17 @@ interface WorkoutProps {
 const Workout: React.FC<WorkoutProps> = ({ workout, onDeleteExercise }) => {
   // const db = useSQLiteContext();
   const exercises = workout.exercises || [];
+  const flatlistRef = React.useRef<FlatList<WorkoutExercise>>(null);
 
-  // useEffect(() => {
-  //   const fetchExercises = async () => {
-  //     try {
-  //       if (workout.workout_id) {
-  //         const result = await getExercisesFromWorkout(db, Number(workout.workout_id));
-  //         setExercises(result);
-  //       } else {
-  //         setExercises([]);
-  //       }
-  //     } catch (err) {
-  //       console.error("Failed to fetch exercises:", err);
-  //     }
-  //   };
-  
-  //   fetchExercises();
-  // }, [db, workout]);
+  useEffect(() => {
+    if (exercises.length > 0) {
+      flatlistRef.current?.scrollToIndex({
+        index: exercises.length - 1,
+        animated: true,
+      });
+    }
+  }
+  , [exercises]);
 
 
   // Placeholder if there are no exercises in the workout
@@ -45,6 +39,14 @@ const Workout: React.FC<WorkoutProps> = ({ workout, onDeleteExercise }) => {
     )
   }
 
+  const renderExerciseItem = useCallback(
+    ({ item }: { item: WorkoutExercise }) => 
+      <View style={styles.exerciseCard}>
+        <ExerciseItem ex={item} onDelete={onDeleteExercise} />
+      </View>,
+    [onDeleteExercise]
+  );
+
 
   // Todo : Add exercise number indicator to the exercise card to show which exercise it is in the workout
   // Todo : Add instructions to the exercise card to show how to do the exercise
@@ -53,12 +55,9 @@ const Workout: React.FC<WorkoutProps> = ({ workout, onDeleteExercise }) => {
   return (
     <View style={styles.container}>
       <FlatList
+        ref={flatlistRef}
         data={exercises}
-        renderItem={({ item }) => (
-        <View style={styles.exerciseCard}>
-          <ExerciseItem ex={item} onDelete={onDeleteExercise} />
-        </View>
-        )}
+        renderItem={renderExerciseItem}
         keyExtractor={(item) => item.exercise_id.toString()}
         ListEmptyComponent={
           emptyWorkout
@@ -67,8 +66,12 @@ const Workout: React.FC<WorkoutProps> = ({ workout, onDeleteExercise }) => {
         snapToAlignment="start"
         decelerationRate={"fast"}
         snapToInterval={width}
-        // showsHorizontalScrollIndicator={false}
-        
+        showsHorizontalScrollIndicator={false}
+        getItemLayout={(data, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
       />
     </View>
   );

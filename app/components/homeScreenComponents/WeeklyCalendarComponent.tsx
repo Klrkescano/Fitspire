@@ -5,8 +5,6 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  Image,
-  ActivityIndicator,
 } from 'react-native';
 import dayjs from 'dayjs';
 import { Workout } from '@/.types/types';
@@ -31,10 +29,6 @@ const WeeklyCalendarComponent: React.FC<WeeklyCalendarProps> = ({
   selectedDate,
   setSelectedDate,
   weekDays,
-  workouts,
-  isLoading,
-  onWorkoutPress,
-  onWorkoutLongPress,
 }) => {
   return (
     <View className="mb-4 bg-white rounded-3xl mx-4">

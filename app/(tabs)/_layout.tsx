@@ -1,14 +1,12 @@
 import {
   View,
   Image,
-  TouchableOpacity,
 } from 'react-native';
 
 import React, { useState } from 'react';
 import icons from '../../constants/icons';
 import { UserProvider } from '../context/UserContext';
 import { Tabs } from 'expo-router';
-import NewWorkoutModal from '../components/homeScreenComponents/NewWorkoutModal';
 
 const TabsLayout = () => {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -77,10 +75,6 @@ const TabsLayout = () => {
           />
         </Tabs>
       </View>
-      <NewWorkoutModal
-        isVisible={isModalVisible}
-        onClose={toggleModal}
-      />
     </UserProvider>
   );
 };

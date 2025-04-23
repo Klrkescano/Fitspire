@@ -1,4 +1,11 @@
-import { SafeAreaView, Text, TouchableOpacity, StyleSheet, View, Dimensions } from "react-native";
+import {
+  SafeAreaView,
+  Text,
+  TouchableOpacity, 
+  StyleSheet, 
+  View, 
+  Dimensions,
+} from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import React, { useState } from "react";
 import ExerciseLibrary from "../components/workoutScreenComponents/ExerciseLibrary";
@@ -59,6 +66,14 @@ const WorkoutScreen: React.FC = () => {
     }));
   };
 
+  const clearWorkout = (): void => {
+    setWorkout({
+      workout_name: "",
+      workout_date: new Date().toISOString(),
+      exercises: [],
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -113,6 +128,7 @@ const WorkoutScreen: React.FC = () => {
         workout={workout}
         isVisible={saveFormVisible}
         onClose={() => setSaveFromVisible(false)}
+        clearWorkout={clearWorkout}
       />
     </SafeAreaView>
   );

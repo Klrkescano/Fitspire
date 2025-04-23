@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions,TextInput, Button } from 'react-native';
 import { WorkoutExercise, Set } from '../../../.types/types';
 import SetComponent from './SetComponent';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -11,25 +11,64 @@ interface ExerciseItemProps {
 
 const ExerciseItem: React.FC<ExerciseItemProps> = ({ ex, onDelete }) => {
   const [sets, setSets] = useState<Set[]>(ex.sets || []);
+  const [weight, setWeight] = useState<string | undefined>(undefined);
+  const [reps, setReps] = useState<string | undefined>(undefined);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  const addSet = (workout_exercise_id: number) => {
+
+  const addSet = () => {
+    if (!weight || !reps) return;
+  
     const newSet: Set = {
       set_id: sets.length + 1,
-      weight: 0,
-      reps: 0,
-      workout_exercise_id: 0,
-      set_number: 0
+      weight: Number(weight),
+      reps: Number(reps),
+      workout_exercise_id: ex.workout_exercise_id,
+      set_number: sets.length + 1,
     };
-
+  
     setSets([...sets, newSet]);
+    setWeight('');
+    setReps('');
+  };
+
+  const saveSet = () => {
+    if (!weight || !reps) return;
+  
+    if (editingIndex !== null) {
+      const updated = sets.map((set, index) =>
+        index === editingIndex
+          ? {
+              ...set,
+              weight: Number(weight),
+              reps: Number(reps),
+            }
+          : set
+      );
+      setSets(updated);
+      setEditingIndex(null);
+    } else {
+      addSet();
+    }
+  
+    // Clear fields
+    setWeight('');
+    setReps('');
+  };
+
+  const selectSetToEdit = (index: number, set: Set) => {
+    setEditingIndex(index);
+    setWeight(set.weight?.toString() || '');
+    setReps(set.reps?.toString() || '');
   }
+  
 
   const deleteSet = (workout_exercise_id: number, setIndex: number) => {
     setSets(sets.filter((_, index) => index !== setIndex));
   }
 
   const updateSet = (workout_exercise_id: number, setIndex: number, key: keyof Set, value: string) => {
-    const newSets = sets.map((set, index) => {
+    const updateSet = sets.map((set, index) => {
       if (index === setIndex) {
         return {
           ...set,
@@ -39,41 +78,59 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ ex, onDelete }) => {
       return set;
     });
 
-    setSets(newSets);
+    setSets(updateSet);
   }
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>{ex.exercise_name}</Text>
-          <View style={styles.tags}>
-            <Text style={styles.tag}>{ex.muscle_group}</Text>
-            <Text style={styles.tag}>{ex.equipment}</Text>
+      <View style={styles.card}>
+        <View style={styles.header}>
+          <View style={styles.textContainer}>
+            <Text style={styles.title}>{ex.exercise_name}</Text>
+            <View style={styles.tags}>
+              <Text style={styles.tag}>{ex.muscle_group}</Text>
+              <Text style={styles.tag}>{ex.equipment}</Text>
+            </View>
           </View>
+          <TouchableOpacity
+            onPress={() => onDelete(ex.workout_exercise_id)}
+            style={styles.deleteButton}
+          >
+            <Icon name="times" size={24} color="#E74C3C" />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          onPress={() => onDelete(ex.workout_exercise_id)}
-          style={styles.deleteButton}
-        >
-        <Icon name="times" size={24} color="#E74C3C" />
-        </TouchableOpacity>
+
+        <View style={styles.setsContainer}>
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.input}
+              placeholder="Weight (lbs)"
+              keyboardType="numeric"
+              value={weight}
+              onChangeText={setWeight}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Reps"
+              keyboardType="numeric"
+              value={reps}
+              onChangeText={setReps}
+            />
+            <Button
+              title={editingIndex !== null ? 'Update Set' : 'Add Set'}
+              onPress={saveSet}
+            />
+          </View>
+
+          <SetComponent
+            sets={sets}
+            exerciseId={ex.exercise_id}
+            updateSet={updateSet}
+            deleteSet={deleteSet}
+            selectSetToEdit={selectSetToEdit}
+            editingIndex={editingIndex}
+          />
+        </View>
       </View>
-      <View style={styles.setsContainer}>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => addSet(ex.workout_exercise_id)}
-        >
-          <Text style={styles.addButtonText}>+ Add Set</Text>
-        </TouchableOpacity>
-        <SetComponent
-          sets={sets}
-          exerciseId={ex.exercise_id}
-          updateSet={updateSet}
-          deleteSet={deleteSet}
-        />
-      </View>
-    </View>
   );
 };
 
@@ -143,6 +200,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
+  inputRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    padding: 8,
+    marginHorizontal: 4,
+    borderRadius: 8,
+    backgroundColor: '#FAFAFA',
+    fontSize: 14,
+  },
+
 });
 
 
