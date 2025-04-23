@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Text, StyleSheet, View, TouchableOpacity, Modal, ScrollView } from "react-native";
-import { Set } from "../../.types/types";
+import { Set } from "../../../.types/types";
 
 const marchWorkouts = [
   {

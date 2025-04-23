@@ -8,11 +8,11 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import React, { useState } from "react";
-import ExerciseLibrary from "../components/workoutScreenComponents/ExerciseLibrary";
-import WorkoutComponent from "../components/workoutScreenComponents/WorkoutComponent";
-import { Workout, Exercise,WorkoutExercise} from "../../.types/types";
-import RestTimer from "../components/workoutScreenComponents/RestTimer";
-import SaveForm from "../components/workoutScreenComponents/SaveForm";
+import ExerciseLibrary from "./ExerciseLibrary";
+import WorkoutComponent from "./WorkoutComponent";
+import { Workout, Exercise,WorkoutExercise, Set} from "../../../.types/types";
+import RestTimer from "./RestTimer";
+import SaveForm from "./SaveForm";
 const { width, height } = Dimensions.get('window');
 
 const WorkoutScreen: React.FC = () => {
@@ -62,7 +62,26 @@ const WorkoutScreen: React.FC = () => {
   const handleDeleteExercise = (workout_exercise_id: number): void => {
     setWorkout(prev => ({
       ...prev,
-      exercises: prev.exercises.filter(ex => ex.workout_exercise_id !== workout_exercise_id),
+      // Filter out the exercise and re-calculate order for remaining ones
+      exercises: prev.exercises
+        .filter(ex => ex.workout_exercise_id !== workout_exercise_id)
+        .map((ex, index) => ({
+          ...ex,
+          order_in_workout: index + 1, // Re-assign order
+        })),
+    }));
+  };
+
+  const handleUpdateExerciseSets = (workout_exercise_id: number, newSets: Set[]): void => {
+    setWorkout(prev => ({
+      ...prev,
+      exercises: prev.exercises.map(ex => {
+        if (ex.workout_exercise_id === workout_exercise_id) {
+          // Update the sets for the matching exercise
+          return { ...ex, sets: newSets };
+        }
+        return ex; // Return other exercises unchanged
+      }),
     }));
   };
 
@@ -107,8 +126,8 @@ const WorkoutScreen: React.FC = () => {
       <View style={styles.workoutContainer}>
       <WorkoutComponent
         workout={workout}
-        onAddExercise={() => setModalVisible(true)}
         onDeleteExercise={handleDeleteExercise}
+        onUpdateExerciseSets={handleUpdateExerciseSets}
       />
       <Text style={{ padding: 16, color: '#666', textAlign: 'center' }}>
         Swipe left or right to view exercises.

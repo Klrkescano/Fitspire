@@ -1,35 +1,34 @@
 import React, {useCallback, useEffect} from "react";
 import { Text, View, StyleSheet, FlatList, Button, Dimensions } from "react-native";
-import { Workout as WorkoutType, WorkoutExercise } from "../../../.types/types";
+import { Workout, WorkoutExercise, Set } from "../../../.types/types";
 import ExerciseItem from "./ExerciseItem";
 import { useSQLiteContext } from "expo-sqlite";
 import { getExercisesFromWorkout} from "../../../.utils/databaseSetup";
 const { width, height } = Dimensions.get("window");
 
 interface WorkoutProps {
-  workout: WorkoutType; 
-  onAddExercise: () => void;
+  workout: Workout; 
   onDeleteExercise: (workout_exercise_id: number) => void;
-
+  onUpdateExerciseSets: (workout_exercise_id: number, newSets: Set[]) => void;
+  
 }
 
-const Workout: React.FC<WorkoutProps> = ({ workout, onDeleteExercise }) => {
+const WorkoutComponent: React.FC<WorkoutProps> = ({ workout, onDeleteExercise, onUpdateExerciseSets }) => {
   // const db = useSQLiteContext();
   const exercises = workout.exercises || [];
   const flatlistRef = React.useRef<FlatList<WorkoutExercise>>(null);
 
   useEffect(() => {
-    if (exercises.length > 0) {
-      flatlistRef.current?.scrollToIndex({
-        index: exercises.length - 1,
-        animated: true,
-      });
-    }
-  }
-  , [exercises]);
+    if (exercises.length > 0 && flatlistRef.current) {
+        flatlistRef.current.scrollToIndex({
+          index: exercises.length - 1,
+          animated: true,
+        });
+      }
+    }, [exercises.length]);
 
 
-  // Placeholder if there are no exercises in the workout
+
   const emptyWorkout = () => {
     return (
     <View style={styles.emptyContainer}>
@@ -40,18 +39,17 @@ const Workout: React.FC<WorkoutProps> = ({ workout, onDeleteExercise }) => {
   }
 
   const renderExerciseItem = useCallback(
-    ({ item }: { item: WorkoutExercise }) => 
+    ({ item }: { item: WorkoutExercise }) =>
       <View style={styles.exerciseCard}>
-        <ExerciseItem ex={item} onDelete={onDeleteExercise} />
+        <ExerciseItem
+          ex={item}
+          onDelete={onDeleteExercise}
+          onUpdateExerciseSets={onUpdateExerciseSets}
+        />
       </View>,
-    [onDeleteExercise]
+    [onDeleteExercise, onUpdateExerciseSets]
   );
 
-
-  // Todo : Add exercise number indicator to the exercise card to show which exercise it is in the workout
-  // Todo : Add instructions to the exercise card to show how to do the exercise
-  // Todo : Add option to switch between kg and lbs for weight
-  // Todo : Adjust styling for workout timer
   return (
     <View style={styles.container}>
       <FlatList
@@ -110,4 +108,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Workout;
+export default WorkoutComponent;

@@ -24,18 +24,24 @@ const SaveForm: React.FC<SaveFormProps> = ({ isVisible, onClose, workout, clearW
   const db = useSQLiteContext();
   const currentDate = new Date().toLocaleDateString();
   const [workoutName, setWorkoutName] = useState(workout.workout_name || '');
+  const [isSaving, setIsSaving] = useState(false);
+
 
   const handleSaveWorkout = () => {
+    if (isSaving) return; // prevent double save
+    setIsSaving(true);
+  
     const workoutData = {
       ...workout,
       workout_name: workoutName,
       workout_date: currentDate,
     };
-    
+  
     saveWorkoutSession(db, workoutData)
       .then(() => {
         console.log('Workout saved successfully!', workoutData);
         onClose();
+        setWorkoutName('');
         clearWorkout();
         setTimeout(() => {
           router.push('/(tabs)/home');
@@ -43,10 +49,15 @@ const SaveForm: React.FC<SaveFormProps> = ({ isVisible, onClose, workout, clearW
       })
       .catch((error) => {
         console.error('Error saving workout:', error);
-      });
-  }
+        setIsSaving(false);
+      })
+      console.log('Trying to save workout at:', new Date().toISOString());
+
+  };
 
   const exercisesDone = workout.exercises.length;
+  console.log('Workout passed to SaveForm:', JSON.stringify(workout, null, 2));
+
   const totalSets = workout.exercises.reduce((total, ex) => total + ex.sets.length, 0);
   const totalWeights = workout.exercises.reduce(
     (total, ex) => total + (ex.sets?.reduce((sum, set) => sum + (set.weight ?? 0), 0) ?? 0),
@@ -87,7 +98,7 @@ const SaveForm: React.FC<SaveFormProps> = ({ isVisible, onClose, workout, clearW
                 </View>
                 <View style={styles.summaryItem}>
                   <Text style={styles.summaryText}>Total Weights Lifted:</Text>
-                  <Text style={styles.summaryValue}>{totalWeights} kg</Text>
+                  <Text style={styles.summaryValue}>{totalWeights} lbs</Text>
                 </View>
               </View>
               <TouchableOpacity style={styles.buttonWithIcon} onPress={handleSaveWorkout}>

@@ -26,20 +26,40 @@ const WorkoutSection: React.FC = () => {
 
     useFocusEffect(
         useCallback(() => {
-            const fetchWorkouts = async () => {
-                try {
-                    const fetchedWorkouts = await getWorkoutSessions(db);
-                    setWorkouts(fetchedWorkouts);
-                } catch (error) {
-                    console.error("Error fetching workouts:", error);
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-            fetchWorkouts();
+          let isActive = true;
+      
+          const fetchWorkouts = async () => {
+            try {
+              setIsLoading(true);
+              const fetchedWorkouts = await getWorkoutSessions(db);
+      
+              // ✅ Step 1: Log the workout IDs to debug duplicates
+              console.log("Fetched workouts:", fetchedWorkouts.map(w => w.workout_id));
+      
+              // ✅ Step 2: Remove duplicate workouts by ID
+              const uniqueWorkouts = fetchedWorkouts.filter(
+                (workout, index, self) =>
+                  index === self.findIndex(w => w.workout_id === workout.workout_id)
+              );
+      
+              if (isActive) {
+                setWorkouts(uniqueWorkouts);
+              }
+            } catch (error) {
+              console.error("Error fetching workouts:", error);
+            } finally {
+              setIsLoading(false);
+            }
+          };
+      
+          fetchWorkouts();
+      
+          return () => {
+            isActive = false;
+          };
         }, [db])
-    );
-
+      );
+      
     const deleteWorkout = async (workoutId: number) => {
         try {
             await db.runAsync(`DELETE FROM workout WHERE workout_id = ?`, [workoutId]);

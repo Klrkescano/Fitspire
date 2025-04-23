@@ -21,7 +21,7 @@ const NewWorkoutModal: React.FC<NewWorkoutFormProps> = ({ isVisible, onClose, })
     const handleTrackWorkout = () => {
         onClose();
         setTimeout(() => {
-            router.push('/(tabs)/workoutScreen')
+            router.push('/components/workoutScreenComponents/WorkoutScreen');
         },350);
     }
 

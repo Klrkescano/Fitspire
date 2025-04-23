@@ -28,7 +28,8 @@ export const openDB = async () => {
           `CREATE TABLE IF NOT EXISTS workout (
             workout_id INTEGER PRIMARY KEY AUTOINCREMENT,
             workout_name TEXT NOT NULL,
-            workout_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            workout_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(workout_name, workout_date)
           );`
         );
 
@@ -184,38 +185,67 @@ export async function insertExerciseForSession(db: SQLite.SQLiteDatabase, workou
   );
 }
 
-export const saveWorkoutSession = async (db: SQLite.SQLiteDatabase, workout:Workout ) => {
+export const saveWorkoutSession = async (db: SQLite.SQLiteDatabase, workout: Workout) => {
   try {
     await db.withTransactionAsync(async () => {
+      const { workout_name, workout_date, exercises } = workout;
 
-      const workoutResult = await db.getFirstAsync<{ lastInsertRowId: number }>(
-      `INSERT INTO workout (workout_name) VALUES (?)`,
-      [workout.workout_name]
+      // Try to insert the workout if it doesn't exist yet
+      const insertWorkoutResult = await db.getFirstAsync<{ lastInsertRowId: number }>(
+        `
+        INSERT INTO workout (workout_name, workout_date)
+        SELECT ?, ?
+        WHERE NOT EXISTS (
+          SELECT 1 FROM workout WHERE workout_name = ? AND workout_date = ?
+        )
+        `,
+        [workout_name, workout_date, workout_name, workout_date]
       );
 
-      const workoutId = workoutResult?.lastInsertRowId ?? 0;
+      // If we inserted it, use its ID, otherwise fetch the existing one
+      let workoutId = insertWorkoutResult?.lastInsertRowId;
 
-      for( const[ index, exercise] of workout.exercises.entries()) {
+      if (!workoutId) {
+        const existing = await db.getFirstAsync<{ workout_id: number }>(
+          `SELECT workout_id FROM workout WHERE workout_name = ? AND workout_date = ?`,
+          [workout_name, workout_date]
+        );
+        workoutId = existing?.workout_id;
+
+        if (!workoutId) throw new Error('Workout already exists but failed to retrieve its ID.');
+      }
+
+      console.log('Workout ID to use:', workoutId);
+
+      // Save exercises and sets
+      for (const [index, exercise] of exercises.entries()) {
         const exerciseResult = await db.getFirstAsync<{ lastInsertRowId: number }>(
           `INSERT INTO workout_exercise (workout_id, exercise_id, order_in_workout) VALUES (?, ?, ?)`,
           [workoutId, exercise.exercise_id, index + 1]
         );
 
         const workout_exercise_id = exerciseResult?.lastInsertRowId ?? 0;
+        console.log('Exercise inserted with ID:', workout_exercise_id);
 
         for (const set of exercise.sets) {
           await db.runAsync(
             `INSERT INTO sets (workout_exercise_id, set_number, weight, reps) VALUES (?, ?, ?, ?)`,
-            [workout_exercise_id, set.set_number, set.weight, set.reps]
+            [
+              workout_exercise_id,
+              set.set_number ?? 0,
+              set.weight ?? 0,
+              set.reps ?? 0
+            ]
           );
         }
       }
-      
     });
+
+    console.log('Workout session saved!');
   } catch (error) {
-    console.error("Error saving workout session:", error);
+    console.error('Error saving workout session:', error);
   }
-}
+};
 
 export async function getWorkoutSessions(db: SQLite.SQLiteDatabase): Promise<Workout[]> {
   try {

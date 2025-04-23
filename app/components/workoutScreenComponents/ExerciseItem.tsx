@@ -7,79 +7,81 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 interface ExerciseItemProps {
   ex: WorkoutExercise;
   onDelete: (exercise_id: number) => void;
+  onUpdateExerciseSets: (workout_exercise_id: number, newSets: Set[]) => void;
 }
 
-const ExerciseItem: React.FC<ExerciseItemProps> = ({ ex, onDelete }) => {
-  const [sets, setSets] = useState<Set[]>(ex.sets || []);
+const ExerciseItem: React.FC<ExerciseItemProps> = ({ ex, onDelete,onUpdateExerciseSets }) => {
+
   const [weight, setWeight] = useState<string | undefined>(undefined);
   const [reps, setReps] = useState<string | undefined>(undefined);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
+  const currentSets = ex.sets || [];
 
-  const addSet = () => {
-    if (!weight || !reps) return;
-  
-    const newSet: Set = {
-      set_id: sets.length + 1,
-      weight: Number(weight),
-      reps: Number(reps),
-      workout_exercise_id: ex.workout_exercise_id,
-      set_number: sets.length + 1,
-    };
-  
-    setSets([...sets, newSet]);
-    setWeight('');
-    setReps('');
-  };
 
   const saveSet = () => {
-    if (!weight || !reps) return;
-  
+    if (!weight || !reps || isNaN(Number(weight)) || isNaN(Number(reps))) {
+      console.warn("Invalid weight or reps input");
+      return;
+    };
+
+    const weightValue = Number(weight);
+    const repsValue = Number(reps);
+
+    let updatedSets: Set[];
+
     if (editingIndex !== null) {
-      const updated = sets.map((set, index) =>
+      updatedSets = currentSets.map((set, index) =>
         index === editingIndex
           ? {
-              ...set,
-              weight: Number(weight),
-              reps: Number(reps),
-            }
+            ...set,
+            weight: weightValue,
+            reps: repsValue,
+          }
           : set
       );
-      setSets(updated);
       setEditingIndex(null);
     } else {
-      addSet();
+      const nextSetNumber = currentSets.length + 1;
+      const nextSetId = Date.now() + Math.random(); 
+
+      const newSet: Set = {
+        set_id: nextSetId,
+        weight: weightValue,
+        reps: repsValue,
+        workout_exercise_id: ex.workout_exercise_id,
+        set_number: nextSetNumber,
+      };
+      updatedSets = [...currentSets, newSet];
     }
-  
-    // Clear fields
+
+    onUpdateExerciseSets(ex.workout_exercise_id, updatedSets);
+
     setWeight('');
     setReps('');
   };
 
   const selectSetToEdit = (index: number, set: Set) => {
     setEditingIndex(index);
-    setWeight(set.weight?.toString() || '');
-    setReps(set.reps?.toString() || '');
-  }
-  
+    setWeight(set.weight?.toString() ?? '');
+    setReps(set.reps?.toString() ?? '');
+  };
 
-  const deleteSet = (workout_exercise_id: number, setIndex: number) => {
-    setSets(sets.filter((_, index) => index !== setIndex));
-  }
+  const deleteSet = (setIndexToDelete: number) => {
+    const updatedSets = currentSets
+      .filter((_, index) => index !== setIndexToDelete)
+      .map((set, index) => ({ 
+        ...set,
+        set_number: index + 1,
+      }));
+    if(editingIndex === setIndexToDelete) {
+        setEditingIndex(null);
+        setWeight('');
+        setReps('');
+    }
 
-  const updateSet = (workout_exercise_id: number, setIndex: number, key: keyof Set, value: string) => {
-    const updateSet = sets.map((set, index) => {
-      if (index === setIndex) {
-        return {
-          ...set,
-          [key]: value,
-        };
-      }
-      return set;
-    });
-
-    setSets(updateSet);
-  }
+    onUpdateExerciseSets(ex.workout_exercise_id, updatedSets);
+  };
 
   return (
       <View style={styles.card}>
@@ -122,10 +124,9 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ ex, onDelete }) => {
           </View>
 
           <SetComponent
-            sets={sets}
-            exerciseId={ex.exercise_id}
-            updateSet={updateSet}
-            deleteSet={deleteSet}
+            sets={currentSets}
+            exerciseId={ex.workout_exercise_id}
+            deleteSet={(setIndex) =>deleteSet(setIndex)}
             selectSetToEdit={selectSetToEdit}
             editingIndex={editingIndex}
           />
