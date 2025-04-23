@@ -1,7 +1,7 @@
 import { View,Text, FlatList,TextInput, StyleSheet, Modal, TouchableOpacity, Dimensions } from "react-native";
 import React, {useState, useEffect} from "react";
-import { Exercise } from "../../.types/types";
-import { getAllExercises } from "../../.utils/databaseSetup";
+import { Exercise } from "../../../.types/types";
+import { getAllExercises } from "../../../.utils/databaseSetup";
 import { useSQLiteContext } from "expo-sqlite";
 
 interface ExerciseLibraryProps {

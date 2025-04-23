@@ -1,13 +1,19 @@
-import { SafeAreaView, Text, TouchableOpacity, StyleSheet, View, Dimensions } from "react-native";
+import {
+  SafeAreaView,
+  Text,
+  TouchableOpacity, 
+  StyleSheet, 
+  View, 
+  Dimensions,
+} from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import React, { useState } from "react";
-import ExerciseLibrary from "../components/ExerciseLibrary";
-import WorkoutComponent from "../components/WorkoutComponent";
-import { Workout, Exercise,WorkoutExercise} from "../../.types/types";
-import RestTimer from "../components/RestTimer";
-import SaveForm from "../components/SaveForm";
+import ExerciseLibrary from "./ExerciseLibrary";
+import WorkoutComponent from "./WorkoutComponent";
+import { Workout, Exercise,WorkoutExercise, Set} from "../../../.types/types";
+import RestTimer from "./RestTimer";
+import SaveForm from "./SaveForm";
 const { width, height } = Dimensions.get('window');
-import { useSQLiteContext } from "expo-sqlite";
 
 const WorkoutScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -56,8 +62,35 @@ const WorkoutScreen: React.FC = () => {
   const handleDeleteExercise = (workout_exercise_id: number): void => {
     setWorkout(prev => ({
       ...prev,
-      exercises: prev.exercises.filter(ex => ex.workout_exercise_id !== workout_exercise_id),
+      // Filter out the exercise and re-calculate order for remaining ones
+      exercises: prev.exercises
+        .filter(ex => ex.workout_exercise_id !== workout_exercise_id)
+        .map((ex, index) => ({
+          ...ex,
+          order_in_workout: index + 1, // Re-assign order
+        })),
     }));
+  };
+
+  const handleUpdateExerciseSets = (workout_exercise_id: number, newSets: Set[]): void => {
+    setWorkout(prev => ({
+      ...prev,
+      exercises: prev.exercises.map(ex => {
+        if (ex.workout_exercise_id === workout_exercise_id) {
+          // Update the sets for the matching exercise
+          return { ...ex, sets: newSets };
+        }
+        return ex; // Return other exercises unchanged
+      }),
+    }));
+  };
+
+  const clearWorkout = (): void => {
+    setWorkout({
+      workout_name: "",
+      workout_date: new Date().toISOString(),
+      exercises: [],
+    });
   };
 
   return (
@@ -93,8 +126,8 @@ const WorkoutScreen: React.FC = () => {
       <View style={styles.workoutContainer}>
       <WorkoutComponent
         workout={workout}
-        onAddExercise={() => setModalVisible(true)}
         onDeleteExercise={handleDeleteExercise}
+        onUpdateExerciseSets={handleUpdateExerciseSets}
       />
       <Text style={{ padding: 16, color: '#666', textAlign: 'center' }}>
         Swipe left or right to view exercises.
@@ -114,6 +147,7 @@ const WorkoutScreen: React.FC = () => {
         workout={workout}
         isVisible={saveFormVisible}
         onClose={() => setSaveFromVisible(false)}
+        clearWorkout={clearWorkout}
       />
     </SafeAreaView>
   );

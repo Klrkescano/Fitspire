@@ -1,14 +1,12 @@
 import {
   View,
   Image,
-  TouchableOpacity,
 } from 'react-native';
 
 import React, { useState } from 'react';
 import icons from '../../constants/icons';
 import { UserProvider } from '../context/UserContext';
 import { Tabs } from 'expo-router';
-import NewWorkoutModal from '../components/NewWorkoutModal';
 
 const TabsLayout = () => {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -48,37 +46,6 @@ const TabsLayout = () => {
             }}
           />
           <Tabs.Screen
-            name="workoutScreen"
-            options={{
-              headerShown: false,
-              tabBarButton: () => (
-                <TouchableOpacity
-                  onPress={toggleModal}
-                  style={{
-                    position: 'absolute',
-                    bottom: 20,
-                    backgroundColor: '#0061ff',
-                    width: 70,
-                    height: 70,
-                    borderRadius: 50,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    shadowColor: '#0061ff',
-                    shadowOpacity: 0.4,
-                    shadowRadius: 5,
-                    shadowOffset: { width: 0, height: 2 },
-                    elevation: 10,
-                  }}
-                >
-                  <Image
-                    source={icons.plus}
-                    style={{ width: 30, height: 30, tintColor: 'white' }}
-                  />
-                </TouchableOpacity>
-              ),
-            }}
-          />
-          <Tabs.Screen
             name="profile"
             options={{
               title: 'Profile',
@@ -108,10 +75,6 @@ const TabsLayout = () => {
           />
         </Tabs>
       </View>
-      <NewWorkoutModal
-        isVisible={isModalVisible}
-        onClose={toggleModal}
-      />
     </UserProvider>
   );
 };
